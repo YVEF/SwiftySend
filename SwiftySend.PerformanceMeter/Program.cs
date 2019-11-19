@@ -39,7 +39,7 @@ namespace SwiftySend.PerformanceMeter
         }
     }
 
-    [SimpleJob(launchCount: 3, warmupCount: 0, targetCount: 10)]
+    [SimpleJob(launchCount: 6, warmupCount: 0, targetCount: 20)]
     public class TestingGround
     {
         private Fixture fixture = new Fixture();
@@ -47,7 +47,7 @@ namespace SwiftySend.PerformanceMeter
         private YAXSerializer YAXSerializer;
         private SwiftySendSerializer SwiftySendSerializer;
 
-        [Params(5, 20)]
+        [Params(3, 20, 50)]
         public int limit;
 
         [IterationSetup]
@@ -60,21 +60,37 @@ namespace SwiftySend.PerformanceMeter
         }
 
         [Benchmark]
-        public string YaxlibTest()
+        public string YaxlibTestWithoutInitialization()
         {
-            YAXSerializer = new YAXSerializer(typeof(Dummy));
             foreach (var item in _testDatas)
                 YAXSerializer.Serialize(item);
             return YAXSerializer.Serialize(_testDatas[0]);
         }
 
         [Benchmark]
-        public string SwiftySendTest()
+        public string SwiftySendTestWithoutInitialization()
         {
-            SwiftySendSerializer = new SwiftySendSerializer(typeof(Dummy));
             foreach (var item in _testDatas)
                 SwiftySendSerializer.Serialize(item);
             return SwiftySendSerializer.Serialize(_testDatas[0]);
+        }
+
+        [Benchmark]
+        public string YaxlibTestWithInitialization()
+        {
+            var serializer = new YAXSerializer(typeof(Dummy));
+            foreach (var item in _testDatas)
+                serializer.Serialize(item);
+            return serializer.Serialize(_testDatas[0]);
+        }
+
+        [Benchmark]
+        public string SwiftySendTestWithInitialization()
+        {
+            var serializer = new SwiftySendSerializer(typeof(Dummy));
+            foreach (var item in _testDatas)
+                serializer.Serialize(item);
+            return serializer.Serialize(_testDatas[0]);
         }
     }
 }

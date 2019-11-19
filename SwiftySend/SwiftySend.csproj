@@ -42,8 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\MemberAccessHelper.cs" />
-    <Compile Include="Core\PropertyInfoExtended.cs" />
+    <Compile Include="Core\MemberAccessFunctionCollection.cs" />
+    <Compile Include="Core\MemberInfoExtended.cs" />
     <Compile Include="Core\SerializationNode.cs" />
     <Compile Include="Helpers\StructureAnalyzerHelper.cs" />
     <Compile Include="ReaderWriter\SwiftySendXmlReader.cs" />

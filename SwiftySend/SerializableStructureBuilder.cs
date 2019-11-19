@@ -3,15 +3,14 @@ using SwiftySend.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace SwiftySend
 {
     internal class SerializableStructureBuilder
     {
-        private IList<PropertyInfoExtended> _propertyInfoExtendeds;
+        private IList<MemberInfoExtended> _propertyInfoExtendeds;
         private MethodInfo _makeFuncMethod =
-            typeof(MemberAccessHelper).GetMethod("MakeFuncToMemberAccess",
+            typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToMemberAccess",
                 BindingFlags.Static | BindingFlags.Public);
 
 
@@ -30,7 +29,7 @@ namespace SwiftySend
             GenerateSerializableStructureInternal(@object, _propertyInfoExtendeds);
 
 
-        private void PrepareMemberAccessFunctionsInternal(Type targetType, IList<PropertyInfoExtended> propertyInfoExtendeds)
+        private void PrepareMemberAccessFunctionsInternal(Type targetType, IList<MemberInfoExtended> propertyInfoExtendeds)
         {
             var memberAccessFunction = _makeFuncMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { propertyInfoExtendeds });
             var memberAccessInvoker = typeof(Func<,>).MakeGenericType(targetType, typeof(SerializationNode[])).GetMethod("Invoke");
@@ -39,12 +38,12 @@ namespace SwiftySend
             for (int i = 0; i < propertyInfoExtendeds.Count; i++)
             {
                 if (!propertyInfoExtendeds[i].SimpleType)
-                    PrepareMemberAccessFunctionsInternal(propertyInfoExtendeds[i].PropertyInfo.PropertyType, propertyInfoExtendeds[i].NestedProperties);
+                    PrepareMemberAccessFunctionsInternal(propertyInfoExtendeds[i].MemberType, propertyInfoExtendeds[i].NestedProperties);
             }
         }
 
 
-        private SerializationNode[] GenerateSerializableStructureInternal(object @object, IList<PropertyInfoExtended> propertyInfoExtendeds)
+        private SerializationNode[] GenerateSerializableStructureInternal(object @object, IList<MemberInfoExtended> propertyInfoExtendeds)
         {
             var serializationNodes = GenerateSerializableStructureInternal(@object);
 

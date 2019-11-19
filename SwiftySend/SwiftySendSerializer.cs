@@ -10,8 +10,7 @@ namespace SwiftySend
         private readonly Type _targetType;
         
         private readonly SerializableStructureBuilder _serializableStructureBuilder;
-        private readonly BindingFlags _bindingFlags = BindingFlags.Public | BindingFlags.Instance
-                                                    | BindingFlags.Static | BindingFlags.NonPublic;
+        
 
         public SwiftySendSerializer(Type targetType)
         {
