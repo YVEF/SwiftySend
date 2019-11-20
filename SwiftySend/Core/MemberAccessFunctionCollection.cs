@@ -11,7 +11,7 @@ namespace SwiftySend.Core
 
         public static Delegate MakeFuncToMemberAccess<T>(IList<MemberInfoExtended> memberInfoCollection)
         {
-            DynamicMethod dynamicMethod = new DynamicMethod("sdf", typeof(SerializationNode[]), new Type[] { typeof(T) });
+            DynamicMethod dynamicMethod = new DynamicMethod("MemberAccess", typeof(SerializationNode[]), new Type[] { typeof(T) }, typeof(T));
             var ilGenerator = dynamicMethod.GetILGenerator();
 
             ilGenerator.DeclareLocal(typeof(T));
@@ -38,24 +38,25 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Ldstr, memberInfoCollection[i].MemberInfo.Name);
                 ilGenerator.Emit(OpCodes.Stfld, serElementField[0]);
 
+                ilGenerator.Emit(OpCodes.Ldloca_S, 2);
+                ilGenerator.Emit(OpCodes.Ldloc_0);
 
-                if(memberInfoCollection[i].MemberInfo.MemberType == MemberTypes.Property)
-                {
-                    var property = (PropertyInfo)memberInfoCollection[i].MemberInfo;
-                    ilGenerator.Emit(OpCodes.Ldloca_S, 2);
-                    ilGenerator.Emit(OpCodes.Ldloc_0);
-                    ilGenerator.Emit(OpCodes.Callvirt, property.GetGetMethod());
-                    ilGenerator.Emit(OpCodes.Stfld, serElementField[1]);
+                if (memberInfoCollection[i].MemberInfo.MemberType == MemberTypes.Property)
+                {                    
+                    var property = (PropertyInfo)memberInfoCollection[i].MemberInfo;                    
+                    ilGenerator.Emit(OpCodes.Callvirt, property.GetGetMethod());                    
                 }
                 else
                 {
-                    var field = (FieldInfo)memberInfoCollection[i].MemberInfo;
-                    ilGenerator.Emit(OpCodes.Ldloca_S, 2);
-                    ilGenerator.Emit(OpCodes.Ldloc_0);
+                    var field = (FieldInfo)memberInfoCollection[i].MemberInfo;                    
                     ilGenerator.Emit(OpCodes.Ldfld, field);
-                    ilGenerator.Emit(OpCodes.Stfld, serElementField[1]);
                 }
-                
+
+                if (memberInfoCollection[i].MemberType.IsValueType)
+                    ilGenerator.Emit(OpCodes.Box, memberInfoCollection[i].MemberType);
+
+                ilGenerator.Emit(OpCodes.Stfld, serElementField[1]);
+
 
                 ilGenerator.Emit(OpCodes.Ldloc_2);
                 ilGenerator.Emit(OpCodes.Stelem, typeof(SerializationNode));

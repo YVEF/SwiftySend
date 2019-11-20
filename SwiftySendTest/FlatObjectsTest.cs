@@ -8,34 +8,54 @@ namespace SwiftySendTest
     public class FlatObjectsTest
     {
         [Fact]
-        public void Serialize_Object_With_One_Field()
+        public void Serialize_Object_With_One_String_Field()
         {
             var swiftySerializer = new SwiftySendSerializer(typeof(Dummy1));
             var dummy = new Fixture().Create<Dummy1>();
             var result = swiftySerializer.Serialize(dummy);
 
-            Assert.Equal(ExpectedResultCollection.Dummy1ExpectedResult(dummy), result);
+            Assert.Equal(ExpectedResultCollection.GetResult(dummy), result);
         }
 
         [Fact]
-        public void Serialize_Object_With_One_Property()
+        public void Serialize_Object_With_One_String_Property()
         {
             var swiftySerializer = new SwiftySendSerializer(typeof(Dummy2));
             var dummy = new Fixture().Create<Dummy2>();
             
             var result = swiftySerializer.Serialize(dummy);
 
-            Assert.Equal(ExpectedResultCollection.Dummy2ExpectedResult(dummy), result);
+            Assert.Equal(ExpectedResultCollection.GetResult(dummy), result);
         }
 
         [Fact]
-        public void Serialize_Object_With_One_Property_And_One_Field()
+        public void Serialize_Object_With_One_String_Property_And_One_String_Field()
         {
             var swiftySerializer = new SwiftySendSerializer(typeof(Dummy3));
             var dummy = new Fixture().Create<Dummy3>();
             var result = swiftySerializer.Serialize(dummy);
 
-            Assert.Equal(ExpectedResultCollection.Dummy3ExpectedTest(dummy), result);
+            Assert.Equal(ExpectedResultCollection.GetResult(dummy), result);
+        }
+
+        [Fact]
+        public void Serialize_Object_With_One_Enum_Property_And_One_Int_Field()
+        {
+            var swiftySerializer = new SwiftySendSerializer(typeof(Dummy4));
+            var dummy = new Fixture().Create<Dummy4>();
+            var result = swiftySerializer.Serialize(dummy);
+
+            Assert.Equal(ExpectedResultCollection.GetResult(dummy), result);
+        }
+
+        [Fact]
+        public void Serialize_Flat_Object_With_All_Of_The_Base_Types()
+        {
+            var swiftySerializer = new SwiftySendSerializer(typeof(Dummy5));
+            var dummy = new Fixture().Create<Dummy5>();
+            var result = swiftySerializer.Serialize(dummy);
+
+            Assert.Equal(ExpectedResultCollection.GetResult(dummy), result);
         }
 
 

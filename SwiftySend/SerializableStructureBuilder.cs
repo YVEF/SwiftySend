@@ -3,6 +3,7 @@ using SwiftySend.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace SwiftySend
 {
@@ -55,7 +56,7 @@ namespace SwiftySend
             return serializationNodes;
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private SerializationNode[] GenerateSerializableStructureInternal(object @object)
         {
             try

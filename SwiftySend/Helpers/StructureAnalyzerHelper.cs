@@ -8,23 +8,20 @@ namespace SwiftySend.Helpers
 {
     internal class StructureAnalyzerHelper
     {
-        //private static readonly BindingFlags _bindingFlags = BindingFlags.Public | BindingFlags.Instance
-        //                                            | BindingFlags.Static | BindingFlags.NonPublic
-        //                                            | BindingFlags.GetField | BindingFlags.GetProperty;
-
         public static IList<MemberInfoExtended> AnalyzeAndPrepareSerializationStructure(Type targetType)
         {
             var memberCollection = new List<MemberInfoExtended>();
+
             foreach (var propertyInfo in targetType.GetProperties())
             {
-                if(_IsSimpleType(propertyInfo.PropertyType))
+                if (_IsSimpleType(propertyInfo.PropertyType))
                     memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
                 else
                 {
                     var prop = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType);
                     prop.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(propertyInfo.PropertyType));
                     memberCollection.Add(prop);
-                }                
+                }
             }
 
 
@@ -45,6 +42,7 @@ namespace SwiftySend.Helpers
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool _IsSimpleType(Type type) =>
-            type.IsPrimitive || type == typeof(string);
+            type.IsPrimitive || type == typeof(string)
+            || type.IsValueType || type == typeof(object);
     }
 }
