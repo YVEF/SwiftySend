@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace SwiftySendTest.TestData
 {
@@ -30,6 +31,17 @@ namespace SwiftySendTest.TestData
         public static string GetResult(Dummy6 dummy) =>
             $"<Dummy6>\r\n  <DateTimeProperty>{dummy.DateTimeProperty.ToString()}</DateTimeProperty>\r\n  " +
             $"<DateTimeField>{dummy.DateTimeField}</DateTimeField>\r\n</Dummy6>";
+
+
+
+        public static string GetResult(Dummy7 dummy)
+        {
+            var propertyValue = typeof(Dummy7).GetProperty("IntPrivateProperty", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(dummy);
+            var fieldValue = typeof(Dummy7).GetField("DateTimePrivateField", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(dummy);
+            return $"<Dummy7>\r\n  <IntPrivateProperty>{propertyValue}</IntPrivateProperty>\r\n  " +
+                $"<DateTimePrivateField>{fieldValue}</DateTimePrivateField>\r\n</Dummy7>";
+        }
+
 
 
         #endregion

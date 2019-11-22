@@ -1,44 +1,56 @@
 ﻿using AutoFixture;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Running;
 using System;
 using System.Collections.Generic;
 using YAXLib;
+using XSerializer;
 
 namespace SwiftySend.PerformanceMeter
 {
+    [YAXSerializableType(FieldsToSerialize = YAXSerializationFields.AllFields)]
     public class Dummy
     {
         public string StringProperty1 { get; set; }
-        public string StringProperty2 { get; set; }
+        public DateTime DateTimeProperty2 { get; set; }
 
         public string StringProperty3 { get; set; }
-        public string StringProperty4 { get; set; }
+        public decimal DecimalField;
 
         public string StringProperty5 { get; set; }
-        public string StringProperty6 { get; set; }
+        public int IntProperty6 { get; set; }        
 
-        public string StringProperty7 { get; set; }
-        public string StringProperty8 { get; set; }
+        public bool BoolProperty7 { get; set; }
+        public short ShortProperty8 { get; set; }
+        public object ObjectProperty9 { get; set; }
+        public long LongProperty10 { get; set; }
+        public char CharProperty11 { get; set; }
 
-        public string StringProperty9 { get; set; }
-        public string StringProperty10 { get; set; }
-        public string StringProperty11 { get; set; }
-        public string StringProperty12 { get; set; }
-        public string StringProperty13 { get; set; }
-        public string StringProperty14 { get; set; }
+        private string StringProperty12 { get => "random data"; }
+        private string StringField13 = "random data";
+        private object ObjectField14 = new object();
+    }
+
+    public class Dummy2
+    {
+        public string Property { get; set; }
     }
     class Program
     {
         static void Main(string[] args)
         {
+            //var ser = new XmlSerializer<Dummy>();
+            //var s = new Fixture().Create<Dummy>();
+            //var result = ser.Serialize(s);
+
             var summary = BenchmarkRunner.Run<TestingGround>();
 
             Console.Read();
         }
     }
 
+
+    //[InProcess()]
     [SimpleJob(launchCount: 6, warmupCount: 0, targetCount: 20)]
     public class TestingGround
     {
@@ -53,14 +65,18 @@ namespace SwiftySend.PerformanceMeter
         [IterationSetup]
         public void InitializeTest()
         {
+            YAXSerializer = new YAXSerializer(typeof(Dummy));
+            SwiftySendSerializer = new SwiftySendSerializer(typeof(Dummy));
+
             for (int i = 0; i < limit; i++)
                 _testDatas.Add(fixture.Create<Dummy>());
             
             
         }
 
+
         [Benchmark]
-        public string YaxlibTestWithoutInitialization()
+        public string Yaxlib_WithoutInitialization()
         {
             foreach (var item in _testDatas)
                 YAXSerializer.Serialize(item);
@@ -68,15 +84,16 @@ namespace SwiftySend.PerformanceMeter
         }
 
         [Benchmark]
-        public string SwiftySendTestWithoutInitialization()
+        public string SwiftySend_WithoutInitialization()
         {
             foreach (var item in _testDatas)
                 SwiftySendSerializer.Serialize(item);
             return SwiftySendSerializer.Serialize(_testDatas[0]);
         }
 
+
         [Benchmark]
-        public string YaxlibTestWithInitialization()
+        public string Yaxlib_WithInitialization()
         {
             var serializer = new YAXSerializer(typeof(Dummy));
             foreach (var item in _testDatas)
@@ -85,7 +102,7 @@ namespace SwiftySend.PerformanceMeter
         }
 
         [Benchmark]
-        public string SwiftySendTestWithInitialization()
+        public string SwiftySend_WithInitialization()
         {
             var serializer = new SwiftySendSerializer(typeof(Dummy));
             foreach (var item in _testDatas)

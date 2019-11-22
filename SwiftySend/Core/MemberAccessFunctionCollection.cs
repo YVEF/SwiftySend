@@ -70,7 +70,7 @@ namespace SwiftySend.Core
             if (memberInfoExtended.MemberInfo.MemberType == MemberTypes.Property)
             {
                 var property = (PropertyInfo)memberInfoExtended.MemberInfo;
-                ilGenerator.Emit(OpCodes.Callvirt, property.GetGetMethod());
+                ilGenerator.Emit(OpCodes.Callvirt, property.GetMethod);
             }
             else
             {

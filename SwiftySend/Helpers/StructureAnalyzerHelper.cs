@@ -8,11 +8,13 @@ namespace SwiftySend.Helpers
 {
     internal class StructureAnalyzerHelper
     {
+        private static BindingFlags _BindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+
         public static IList<MemberInfoExtended> AnalyzeAndPrepareSerializationStructure(Type targetType)
         {
             var memberCollection = new List<MemberInfoExtended>();
 
-            foreach (var propertyInfo in targetType.GetProperties())
+            foreach (var propertyInfo in targetType.GetProperties(_BindingFlags))
             {
                 if (_IsSimpleType(propertyInfo.PropertyType))
                     memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
@@ -25,8 +27,11 @@ namespace SwiftySend.Helpers
             }
 
 
-            foreach (var fieldInfo in targetType.GetFields())
+            foreach (var fieldInfo in targetType.GetFields(_BindingFlags))
             {
+                if (fieldInfo.Name.EndsWith(">k__BackingField"))
+                    continue;
+
                 if (_IsSimpleType(fieldInfo.FieldType))
                     memberCollection.Add(new MemberInfoExtended(fieldInfo, fieldInfo.FieldType));
                 else

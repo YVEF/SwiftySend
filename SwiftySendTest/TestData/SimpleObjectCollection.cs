@@ -1,5 +1,5 @@
 ﻿using System;
-
+using YAXLib;
 namespace SwiftySendTest.TestData
 {
     internal class Dummy2
@@ -30,6 +30,7 @@ namespace SwiftySendTest.TestData
         public int IntField;
     }
 
+    [YAXSerializableType(FieldsToSerialize = YAXSerializationFields.AllFields)]
     internal class Dummy5
     {
         public DummyEnum EnumProperty { get; set; }
@@ -49,6 +50,19 @@ namespace SwiftySendTest.TestData
     {
         public DateTime DateTimeProperty { get; set; }
         public DateTime DateTimeField;
+    }
+
+    internal class Dummy7
+    {
+        public Dummy7() { }
+
+        public Dummy7(int @int, DateTime dateTime)
+        {
+            IntPrivateProperty = @int;
+            DateTimePrivateField = dateTime;
+        }
+        private int IntPrivateProperty { get; set; }
+        private DateTime DateTimePrivateField;
     }
 
 

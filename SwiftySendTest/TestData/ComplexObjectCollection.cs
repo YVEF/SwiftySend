@@ -12,4 +12,13 @@ namespace SwiftySendTest.TestData
     {
         public bool BoolField;
     }
+
+
+
+    internal class ComplexDummy3
+    {
+        public int IntProperty { get; set; }
+        public ComplexDummy1 ComplexDummy1Field;
+        public ComplexDummy2 ComplexDummy2Property { get; set; }
+    }
 }
