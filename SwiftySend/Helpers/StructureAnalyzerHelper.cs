@@ -18,9 +18,9 @@ namespace SwiftySend.Helpers
                     memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
                 else
                 {
-                    var prop = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType);
-                    prop.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(propertyInfo.PropertyType));
-                    memberCollection.Add(prop);
+                    var memberInfo = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType);
+                    memberInfo.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(propertyInfo.PropertyType));
+                    memberCollection.Add(memberInfo);
                 }
             }
 
@@ -31,9 +31,9 @@ namespace SwiftySend.Helpers
                     memberCollection.Add(new MemberInfoExtended(fieldInfo, fieldInfo.FieldType));
                 else
                 {
-                    var prop = new MemberInfoExtended(fieldInfo, fieldInfo.FieldType);
-                    prop.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(fieldInfo.FieldType));
-                    memberCollection.Add(prop);
+                    var memberInfo = new MemberInfoExtended(fieldInfo, fieldInfo.FieldType);
+                    memberInfo.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(fieldInfo.FieldType));
+                    memberCollection.Add(memberInfo);
                 }
             }
             return memberCollection;

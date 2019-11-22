@@ -2,12 +2,16 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 namespace SwiftySend.Core
 {
     internal class MemberAccessFunctionCollection
     {
+        private static MethodInfo toString = typeof(object).GetMethod("ToString");
         public static IList<FieldInfo> serElementField = typeof(SerializationNode).GetFields();
+
+        
 
         public static Delegate MakeFuncToMemberAccess<T>(IList<MemberInfoExtended> memberInfoCollection)
         {
@@ -41,19 +45,8 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Ldloca_S, 2);
                 ilGenerator.Emit(OpCodes.Ldloc_0);
 
-                if (memberInfoCollection[i].MemberInfo.MemberType == MemberTypes.Property)
-                {                    
-                    var property = (PropertyInfo)memberInfoCollection[i].MemberInfo;                    
-                    ilGenerator.Emit(OpCodes.Callvirt, property.GetGetMethod());                    
-                }
-                else
-                {
-                    var field = (FieldInfo)memberInfoCollection[i].MemberInfo;                    
-                    ilGenerator.Emit(OpCodes.Ldfld, field);
-                }
 
-                if (memberInfoCollection[i].MemberType.IsValueType)
-                    ilGenerator.Emit(OpCodes.Box, memberInfoCollection[i].MemberType);
+                _CodeGenerationAccordingToMember(ilGenerator, memberInfoCollection[i]);
 
                 ilGenerator.Emit(OpCodes.Stfld, serElementField[1]);
 
@@ -68,7 +61,28 @@ namespace SwiftySend.Core
 
 
             return dynamicMethod.CreateDelegate(typeof(Func<T, SerializationNode[]>));
+        }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void _CodeGenerationAccordingToMember(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
+        {
+            if (memberInfoExtended.MemberInfo.MemberType == MemberTypes.Property)
+            {
+                var property = (PropertyInfo)memberInfoExtended.MemberInfo;
+                ilGenerator.Emit(OpCodes.Callvirt, property.GetGetMethod());
+            }
+            else
+            {
+                var field = (FieldInfo)memberInfoExtended.MemberInfo;
+                ilGenerator.Emit(OpCodes.Ldfld, field);
+            }
+
+            if (memberInfoExtended.MemberType.IsValueType)
+                ilGenerator.Emit(OpCodes.Box, memberInfoExtended.MemberType);
+
+            if (memberInfoExtended.MemberType == typeof(DateTime))
+                ilGenerator.Emit(OpCodes.Callvirt, toString);
         }
     }
 }
