@@ -27,11 +27,8 @@ namespace SwiftySend
         {
             _CheckRequirements(@object);
 
-
             var serializationNodes = _serializableStructureBuilder.GenerateSerializableStructure(@object);
-            var writer = new SwiftySendXmlWriter(typeof(TObject), serializationNodes);
-
-            return writer.CreateXml().ToString();
+            return new SwiftySendXmlWriter(typeof(TObject), serializationNodes).CreateXml().ToString();
         }
 
 

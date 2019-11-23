@@ -9,7 +9,7 @@ namespace SwiftySendTest
 {
     public class FlatObjectSerializationTest : ObjectSerializationTestBase
     {
-        private Fixture _fixture = new Fixture();
+        
         [Fact]
         public void Serialize_Object_With_One_String_Field()
         {

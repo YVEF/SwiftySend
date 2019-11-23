@@ -4,7 +4,9 @@ using BenchmarkDotNet.Running;
 using System;
 using System.Collections.Generic;
 using YAXLib;
-using XSerializer;
+using System.Xml.Serialization;
+using System.IO;
+using System.Runtime.Serialization;
 
 namespace SwiftySend.PerformanceMeter
 {
@@ -26,9 +28,11 @@ namespace SwiftySend.PerformanceMeter
         public long LongProperty10 { get; set; }
         public char CharProperty11 { get; set; }
 
-        private string StringProperty12 { get => "random data"; }
-        private string StringField13 = "random data";
-        private object ObjectField14 = new object();
+
+        //private string StringProperty12 { get => "random data"; }
+
+        //private string StringField13 = "random data";
+        //private object ObjectField14 = new object();
     }
 
     public class Dummy2
@@ -39,9 +43,6 @@ namespace SwiftySend.PerformanceMeter
     {
         static void Main(string[] args)
         {
-            //var ser = new XmlSerializer<Dummy>();
-            //var s = new Fixture().Create<Dummy>();
-            //var result = ser.Serialize(s);
 
             var summary = BenchmarkRunner.Run<TestingGround>();
 
@@ -50,16 +51,17 @@ namespace SwiftySend.PerformanceMeter
     }
 
 
-    //[InProcess()]
     [SimpleJob(launchCount: 6, warmupCount: 0, targetCount: 20)]
     public class TestingGround
     {
         private Fixture fixture = new Fixture();
         private IList<Dummy> _testDatas = new List<Dummy>();
+
         private YAXSerializer YAXSerializer;
         private SwiftySendSerializer SwiftySendSerializer;
 
-        [Params(3, 20, 50)]
+
+        [Params(3 /*20*//*, 50*/)]
         public int limit;
 
         [IterationSetup]
@@ -75,11 +77,14 @@ namespace SwiftySend.PerformanceMeter
         }
 
 
+
         [Benchmark]
         public string Yaxlib_WithoutInitialization()
         {
             foreach (var item in _testDatas)
-                YAXSerializer.Serialize(item);
+            {
+                string result = YAXSerializer.Serialize(item);
+            }
             return YAXSerializer.Serialize(_testDatas[0]);
         }
 
@@ -87,9 +92,13 @@ namespace SwiftySend.PerformanceMeter
         public string SwiftySend_WithoutInitialization()
         {
             foreach (var item in _testDatas)
-                SwiftySendSerializer.Serialize(item);
+            {
+                string result = SwiftySendSerializer.Serialize(item);
+            }
+                
             return SwiftySendSerializer.Serialize(_testDatas[0]);
         }
+
 
 
         [Benchmark]
@@ -97,16 +106,25 @@ namespace SwiftySend.PerformanceMeter
         {
             var serializer = new YAXSerializer(typeof(Dummy));
             foreach (var item in _testDatas)
-                serializer.Serialize(item);
+            {
+                string result = serializer.Serialize(item);
+            }
+                
             return serializer.Serialize(_testDatas[0]);
         }
+
+
+        
 
         [Benchmark]
         public string SwiftySend_WithInitialization()
         {
             var serializer = new SwiftySendSerializer(typeof(Dummy));
             foreach (var item in _testDatas)
-                serializer.Serialize(item);
+            {
+                string result = serializer.Serialize(item);
+            }
+                
             return serializer.Serialize(_testDatas[0]);
         }
     }

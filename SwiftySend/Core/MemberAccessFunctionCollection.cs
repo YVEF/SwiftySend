@@ -56,9 +56,7 @@ namespace SwiftySend.Core
             }
 
             ilGenerator.Emit(OpCodes.Ldloc_1);
-
             ilGenerator.Emit(OpCodes.Ret);
-
 
             return dynamicMethod.CreateDelegate(typeof(Func<T, SerializationNode[]>));
         }
@@ -78,10 +76,10 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Ldfld, field);
             }
 
-            if (memberInfoExtended.MemberType.IsValueType)
-                ilGenerator.Emit(OpCodes.Box, memberInfoExtended.MemberType);
+            if (memberInfoExtended.TypeInfo.Type.IsValueType)
+                ilGenerator.Emit(OpCodes.Box, memberInfoExtended.TypeInfo.Type);
 
-            if (memberInfoExtended.MemberType == typeof(DateTime))
+            if (memberInfoExtended.TypeInfo.Type == typeof(DateTime))
                 ilGenerator.Emit(OpCodes.Callvirt, toString);
         }
     }

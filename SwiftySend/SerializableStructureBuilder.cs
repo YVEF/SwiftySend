@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Linq;
+using System.Collections;
 
 namespace SwiftySend
 {
@@ -38,8 +40,17 @@ namespace SwiftySend
 
             for (int i = 0; i < propertyInfoExtendeds.Count; i++)
             {
-                if (!propertyInfoExtendeds[i].SimpleType)
-                    PrepareMemberAccessFunctionsInternal(propertyInfoExtendeds[i].MemberType, propertyInfoExtendeds[i].NestedProperties);
+                if (propertyInfoExtendeds[i].SimpleType)
+                {
+                    continue;
+                }
+                else if(propertyInfoExtendeds[i].TypeInfo.IsCollection)
+                {
+                    // TODO
+                }
+                else
+                    PrepareMemberAccessFunctionsInternal(propertyInfoExtendeds[i].TypeInfo.Type, propertyInfoExtendeds[i].NestedMembers);
+                
             }
         }
 
@@ -50,8 +61,23 @@ namespace SwiftySend
 
             for (int i = 0; i < propertyInfoExtendeds.Count; i++)
             {
-                if (!propertyInfoExtendeds[i].SimpleType)
-                    serializationNodes[i].NestedNodes = GenerateSerializableStructureInternal(serializationNodes[i].Value, propertyInfoExtendeds[i].NestedProperties);
+                if (propertyInfoExtendeds[i].SimpleType)
+                {
+                    continue;
+                }
+                else if (propertyInfoExtendeds[i].TypeInfo.IsCollection)
+                {
+                    if(propertyInfoExtendeds[i].SimpleCollection)
+                    {
+                        string nodeName = propertyInfoExtendeds[i].TypeInfo.HasGenericParameters ? propertyInfoExtendeds[i].TypeInfo.GenericParameters[0].Name : "object";
+                        serializationNodes[i].NestedNodes = ((IEnumerable)serializationNodes[i].Value)
+                            .Select(x => new SerializationNode() { Value = x, Name = nodeName });                        
+                    }
+                    
+                }
+                
+                else
+                    serializationNodes[i].NestedNodes = GenerateSerializableStructureInternal(serializationNodes[i].Value, propertyInfoExtendeds[i].NestedMembers);
             }
             return serializationNodes;
         }

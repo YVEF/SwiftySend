@@ -13,9 +13,17 @@ namespace SwiftySendTest
     {
 
         [Fact]
-        public void Test()
+        public void Serialize_Object_With_One_Complex_Property_And_One_String_Property()
         {
-            var dummy = new Fixture().Create<ComplexDummy1>();
+            var dummy = _fixture.Create<ComplexDummy1>();
+            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+        }
+
+
+        [Fact]
+        public void Serialize_Object_With_One_ListString_Property()
+        {
+            var dummy = _fixture.Create<CollectionDummy1>();
             CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
         }
     }

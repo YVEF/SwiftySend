@@ -1,5 +1,6 @@
 ﻿using SwiftySend.Core;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -18,10 +19,17 @@ namespace SwiftySend.Helpers
             {
                 if (_IsSimpleType(propertyInfo.PropertyType))
                     memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
+                else if (propertyInfo.PropertyType.IsAbstract)
+                    continue;
+
+                else if (_IsCollection(propertyInfo.PropertyType))
+                {
+                    memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType, isCollection: true));
+                }
                 else
                 {
                     var memberInfo = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType);
-                    memberInfo.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(propertyInfo.PropertyType));
+                    memberInfo.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(propertyInfo.PropertyType));
                     memberCollection.Add(memberInfo);
                 }
             }
@@ -37,12 +45,19 @@ namespace SwiftySend.Helpers
                 else
                 {
                     var memberInfo = new MemberInfoExtended(fieldInfo, fieldInfo.FieldType);
-                    memberInfo.NestedProperties.AddRange(AnalyzeAndPrepareSerializationStructure(fieldInfo.FieldType));
+                    memberInfo.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(fieldInfo.FieldType));
                     memberCollection.Add(memberInfo);
                 }
             }
             return memberCollection;
         }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool _IsCollection(Type type) => typeof(IEnumerable).IsAssignableFrom(type);// ||
+            //(type.IsGenericType && typeof(IEnumerable<>).MakeGenericType(type.GenericTypeArguments).IsAssignableFrom(type));
+
+            
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

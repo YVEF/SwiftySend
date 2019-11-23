@@ -1,5 +1,7 @@
 ﻿
 
+using System.Collections.Generic;
+
 namespace SwiftySendTest.TestData
 {
     internal class ComplexDummy1
@@ -20,5 +22,11 @@ namespace SwiftySendTest.TestData
         public int IntProperty { get; set; }
         public ComplexDummy1 ComplexDummy1Field;
         public ComplexDummy2 ComplexDummy2Property { get; set; }
+    }
+
+
+    internal class CollectionDummy1
+    {
+        public List<string> ListStringProperty { get; set; }
     }
 }

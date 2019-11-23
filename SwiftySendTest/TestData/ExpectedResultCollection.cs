@@ -55,6 +55,9 @@ namespace SwiftySendTest.TestData
             $" </ComplexDummy2Field>\r\n</ComplexDummy1>";
 
 
+        public static string GetResult(CollectionDummy1 dummy) => string.Empty;
+
+
 
         #endregion
     }

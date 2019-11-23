@@ -45,6 +45,7 @@
     <Compile Include="Core\MemberAccessFunctionCollection.cs" />
     <Compile Include="Core\MemberInfoExtended.cs" />
     <Compile Include="Core\SerializationNode.cs" />
+    <Compile Include="Helpers\CollectionExtension.cs" />
     <Compile Include="Helpers\StructureAnalyzerHelper.cs" />
     <Compile Include="ReaderWriter\SwiftySendXmlReader.cs" />
     <Compile Include="ReaderWriter\SwiftySendXmlWriter.cs" />
