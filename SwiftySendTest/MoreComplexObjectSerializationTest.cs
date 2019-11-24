@@ -26,5 +26,15 @@ namespace SwiftySendTest
             var dummy = _fixture.Create<CollectionDummy1>();
             CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
         }
+
+        [Fact]
+        public void Serialize_Object_With_One_ICollectionString_Property()
+        {
+            var dummy = _fixture.Build<AbstractCollectionDummy1>()
+                .With(x => x.ICollectionStringProperty, _fixture.CreateMany<string>().ToList())
+                .Create();
+            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+            
+        }
     }
 }

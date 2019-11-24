@@ -29,4 +29,10 @@ namespace SwiftySendTest.TestData
     {
         public List<string> ListStringProperty { get; set; }
     }
+
+
+    internal class AbstractCollectionDummy1
+    {
+        public ICollection<string> ICollectionStringProperty { get; set; }
+    }
 }

@@ -19,8 +19,8 @@ namespace SwiftySend.Helpers
             {
                 if (_IsSimpleType(propertyInfo.PropertyType))
                     memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
-                else if (propertyInfo.PropertyType.IsAbstract)
-                    continue;
+                //else if (propertyInfo.PropertyType.IsAbstract)
+                //    continue;
 
                 else if (_IsCollection(propertyInfo.PropertyType))
                 {

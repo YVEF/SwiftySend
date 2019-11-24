@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace SwiftySendTest.TestData
@@ -60,7 +61,10 @@ namespace SwiftySendTest.TestData
             $"<String>{dummy.ListStringProperty[1]}</String>\r\n    <String>{dummy.ListStringProperty[2]}</String>\r\n  " +
             $"</ListStringProperty>\r\n</CollectionDummy1>";
 
-
+        public static string GetResult(AbstractCollectionDummy1 dummy) =>
+            $"<AbstractCollectionDummy1>\r\n  <ICollectionStringProperty>\r\n    <String>{dummy.ICollectionStringProperty.ToList()[0]}</String>\r\n    " +
+            $"<String>{dummy.ICollectionStringProperty.ToList()[1]}</String>\r\n    <String>{dummy.ICollectionStringProperty.ToList()[2]}</String>\r\n  " +
+            $"</ICollectionStringProperty>\r\n</AbstractCollectionDummy1>";
 
         #endregion
     }
