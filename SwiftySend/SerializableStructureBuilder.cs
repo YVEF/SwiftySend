@@ -40,16 +40,16 @@ namespace SwiftySend
 
             for (int i = 0; i < propertyInfoExtendeds.Count; i++)
             {
-                if (propertyInfoExtendeds[i].SimpleType)
+                if (propertyInfoExtendeds[i].IsSimpleType)
                 {
                     continue;
                 }
-                else if(propertyInfoExtendeds[i].TypeInfo.IsCollection)
+                else if(propertyInfoExtendeds[i].IsCollection)
                 {
                     // TODO
                 }
                 else
-                    PrepareMemberAccessFunctionsInternal(propertyInfoExtendeds[i].TypeInfo.Type, propertyInfoExtendeds[i].NestedMembers);
+                    PrepareMemberAccessFunctionsInternal(propertyInfoExtendeds[i].Type, propertyInfoExtendeds[i].NestedMembers);
                 
             }
         }
@@ -61,19 +61,18 @@ namespace SwiftySend
 
             for (int i = 0; i < propertyInfoExtendeds.Count; i++)
             {
-                if (propertyInfoExtendeds[i].SimpleType)
+                if (propertyInfoExtendeds[i].IsSimpleType)
                 {
                     continue;
                 }
-                else if (propertyInfoExtendeds[i].TypeInfo.IsCollection)
+                else if (propertyInfoExtendeds[i].IsCollection)
                 {
-                    if(propertyInfoExtendeds[i].SimpleCollection)
+                    if(propertyInfoExtendeds[i].IsSimpleCollection)
                     {
-                        string nodeName = propertyInfoExtendeds[i].TypeInfo.HasGenericParameters ? propertyInfoExtendeds[i].TypeInfo.GenericParameters[0].Name : "object";
+                        string nodeName = propertyInfoExtendeds[i].HasGenericParameters ? propertyInfoExtendeds[i].GenericParameters[0].Name : "object";
                         serializationNodes[i].NestedNodes = ((IEnumerable)serializationNodes[i].Value)
                             .Select(x => new SerializationNode() { Value = x, Name = nodeName });                        
-                    }
-                    
+                    }                    
                 }
                 
                 else

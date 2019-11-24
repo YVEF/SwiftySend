@@ -24,7 +24,18 @@ namespace SwiftySend.Helpers
 
                 else if (_IsCollection(propertyInfo.PropertyType))
                 {
-                    memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType, isCollection: true));
+                    var memberInfo = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType, isCollection: true);
+                    if (propertyInfo.PropertyType.IsGenericType)
+                    {
+                        memberInfo.GenericParameters = propertyInfo.PropertyType.GetGenericArguments();
+                        foreach (var type in memberInfo.GenericParameters)
+                        {
+                            if (_IsSimpleType(type))
+                                continue;
+                            memberInfo.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(type));
+                        }                            
+                    }
+                    memberCollection.Add(memberInfo);
                 }
                 else
                 {

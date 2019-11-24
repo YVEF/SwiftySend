@@ -76,10 +76,10 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Ldfld, field);
             }
 
-            if (memberInfoExtended.TypeInfo.Type.IsValueType)
-                ilGenerator.Emit(OpCodes.Box, memberInfoExtended.TypeInfo.Type);
+            if (memberInfoExtended.Type.IsValueType)
+                ilGenerator.Emit(OpCodes.Box, memberInfoExtended.Type);
 
-            if (memberInfoExtended.TypeInfo.Type == typeof(DateTime))
+            if (memberInfoExtended.Type == typeof(DateTime))
                 ilGenerator.Emit(OpCodes.Callvirt, toString);
         }
     }

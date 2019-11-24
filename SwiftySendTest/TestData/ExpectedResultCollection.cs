@@ -55,7 +55,10 @@ namespace SwiftySendTest.TestData
             $" </ComplexDummy2Field>\r\n</ComplexDummy1>";
 
 
-        public static string GetResult(CollectionDummy1 dummy) => string.Empty;
+        public static string GetResult(CollectionDummy1 dummy) =>
+            $"<CollectionDummy1>\r\n  <ListStringProperty>\r\n    <String>{dummy.ListStringProperty[0]}</String>\r\n    " +
+            $"<String>{dummy.ListStringProperty[1]}</String>\r\n    <String>{dummy.ListStringProperty[2]}</String>\r\n  " +
+            $"</ListStringProperty>\r\n</CollectionDummy1>";
 
 
 

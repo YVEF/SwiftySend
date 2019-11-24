@@ -14,10 +14,5 @@ namespace SwiftySend.Helpers
                 result.Add(selector.Invoke(item));
             return result;
         }
-
-
-
-
-
     }
 }
