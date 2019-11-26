@@ -36,5 +36,15 @@ namespace SwiftySendTest
             CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
             
         }
+
+
+        [Fact]
+        public void Serialize_Object_With_One_IEnumerable_Of_SimpleDummy_Property()
+        {
+            var dummy = _fixture.Build<EnumerableDummyWithComplexDummy1>()
+                .With(x => x.IEnumerableSimpleDummyProperty, _fixture.CreateMany<SimpleDummy2>().ToList())
+                .Create();
+            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+        }
     }
 }

@@ -7,10 +7,10 @@ namespace SwiftySendTest.TestData
     internal class ComplexDummy1
     {
         public string StringProperty { get; set; }
-        public ComplexDummy2 ComplexDummy2Field;
+        public SimpleDummy2 ComplexDummy2Field;
     }
 
-    internal class ComplexDummy2
+    internal class SimpleDummy2
     {
         public bool BoolField;
     }
@@ -21,7 +21,7 @@ namespace SwiftySendTest.TestData
     {
         public int IntProperty { get; set; }
         public ComplexDummy1 ComplexDummy1Field;
-        public ComplexDummy2 ComplexDummy2Property { get; set; }
+        public SimpleDummy2 ComplexDummy2Property { get; set; }
     }
 
 
@@ -34,5 +34,10 @@ namespace SwiftySendTest.TestData
     internal class AbstractCollectionDummy1
     {
         public ICollection<string> ICollectionStringProperty { get; set; }
+    }
+
+    internal class EnumerableDummyWithComplexDummy1
+    {
+        public IEnumerable<SimpleDummy2> IEnumerableSimpleDummyProperty { get; set; }
     }
 }
