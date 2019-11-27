@@ -16,7 +16,7 @@ namespace SwiftySendTest
         public void Serialize_Object_With_One_Complex_Property_And_One_String_Property()
         {
             var dummy = _fixture.Create<ComplexDummy1>();
-            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+            CheckResult(() => XmlRepresentation.GetXml(dummy), dummy);
         }
 
 
@@ -24,7 +24,7 @@ namespace SwiftySendTest
         public void Serialize_Object_With_One_ListString_Property()
         {
             var dummy = _fixture.Create<CollectionDummy1>();
-            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+            CheckResult(() => XmlRepresentation.GetXml(dummy), dummy);
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace SwiftySendTest
             var dummy = _fixture.Build<AbstractCollectionDummy1>()
                 .With(x => x.ICollectionStringProperty, _fixture.CreateMany<string>().ToList())
                 .Create();
-            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+            CheckResult(() => XmlRepresentation.GetXml(dummy), dummy);
             
         }
 
@@ -44,7 +44,7 @@ namespace SwiftySendTest
             var dummy = _fixture.Build<EnumerableDummyWithComplexDummy1>()
                 .With(x => x.IEnumerableSimpleDummyProperty, _fixture.CreateMany<SimpleDummy2>().ToList())
                 .Create();
-            CheckResult(() => ExpectedResultCollection.GetResult(dummy), dummy);
+            CheckResult(() => XmlRepresentation.GetXml(dummy), dummy);
         }
     }
 }

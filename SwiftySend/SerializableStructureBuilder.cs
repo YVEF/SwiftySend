@@ -11,17 +11,23 @@ namespace SwiftySend
 {
     internal class SerializableStructureBuilder
     {
+        //private Type _targetType;
         private IList<MemberInfoExtended> _memberInfoExtendeds;
         private MethodInfo _makeFuncMethod =
             typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToMemberAccess",
                 BindingFlags.Static | BindingFlags.Public);
 
+        private MethodInfo _makeFuncMethod2 = typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToObjectCreatingAndFilling",
+            BindingFlags.Static | BindingFlags.Public);
+
 
         private Dictionary<Type, (MethodInfo, object)> _typeToMemberAccessFunction = new Dictionary<Type, (MethodInfo, object)>();
+        private Dictionary<Type, (MethodInfo, object)> _typeToMemberAccessFunction2 = new Dictionary<Type, (MethodInfo, object)>();
 
 
         public SerializableStructureBuilder Build(Type targetType)
         {
+            //_targetType = targetType;
             _memberInfoExtendeds = StructureAnalyzerHelper.AnalyzeAndPrepareSerializationStructure(targetType);
             PrepareMemberAccessFunctionsInternal(targetType, _memberInfoExtendeds);
             return this;
@@ -32,11 +38,32 @@ namespace SwiftySend
             _GenerateSerializableStructureInternal(@object, _memberInfoExtendeds);
 
 
+        public TObject GenerateObject<TObject>(SerializationNode[] serializationNodes) =>
+            (TObject)_GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoExtendeds);
+
+
+        private object _GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
+        {
+            object @object = null;
+            foreach(var item in memberInfoExtendeds)
+            {
+                var func = _typeToMemberAccessFunction2[targetType];
+                @object = func.Item1.Invoke(func.Item2, new object[] { serializationNodes });
+            }
+            return @object;
+        }
+
+
         private void PrepareMemberAccessFunctionsInternal(Type targetType, IList<MemberInfoExtended> memberInfoExtended)
         {
             var memberAccessFunction = _makeFuncMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
+            var objectCreatingFunction = _makeFuncMethod2.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
+
             var memberAccessInvoker = typeof(Func<,>).MakeGenericType(targetType, typeof(SerializationNode[])).GetMethod("Invoke");
+            var objectCreateInvoker = typeof(Func<,>).MakeGenericType(typeof(SerializationNode[]), targetType).GetMethod("Invoke");
+
             _typeToMemberAccessFunction.Add(targetType, (memberAccessInvoker, memberAccessFunction));
+            _typeToMemberAccessFunction2.Add(targetType, (objectCreateInvoker, objectCreatingFunction));
 
             for (int i = 0; i < memberInfoExtended.Count; i++)
             {
