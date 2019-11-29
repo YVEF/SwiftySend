@@ -18,8 +18,20 @@ namespace SwiftySendTest.XmlDeserialization
             var xmlInput = XmlRepresentation.GetXml(dummy);
             var result = serializer.Deserialize<Dummy1>(xmlInput);
 
-            Assert.True(!ReferenceEquals(dummy, result));
             Assert.Equal(dummy.StringField, result.StringField);
+        }
+
+
+        [Fact]
+        public void Ser()
+        {
+            var dummy = _fixture.Create<Dummy2>();
+            var serializer = new SwiftySendSerializer(typeof(Dummy2));
+
+            var xmlInput = XmlRepresentation.GetXml(dummy);
+            var result = serializer.Deserialize<Dummy2>(xmlInput);
+
+            Assert.Equal(dummy.StringProperty, result.StringProperty);
         }
     }
 }

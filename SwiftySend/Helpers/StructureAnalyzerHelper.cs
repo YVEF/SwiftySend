@@ -63,8 +63,7 @@ namespace SwiftySend.Helpers
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool _IsCollection(Type type) => typeof(IEnumerable).IsAssignableFrom(type);// ||
-            //(type.IsGenericType && typeof(IEnumerable<>).MakeGenericType(type.GenericTypeArguments).IsAssignableFrom(type));
+        private static bool _IsCollection(Type type) => typeof(IEnumerable).IsAssignableFrom(type);
 
             
 

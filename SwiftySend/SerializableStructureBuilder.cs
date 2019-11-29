@@ -11,7 +11,7 @@ namespace SwiftySend
 {
     internal class SerializableStructureBuilder
     {
-        //private Type _targetType;
+
         private IList<MemberInfoExtended> _memberInfoExtendeds;
         private MethodInfo _makeFuncMethod =
             typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToMemberAccess",
@@ -27,7 +27,6 @@ namespace SwiftySend
 
         public SerializableStructureBuilder Build(Type targetType)
         {
-            //_targetType = targetType;
             _memberInfoExtendeds = StructureAnalyzerHelper.AnalyzeAndPrepareSerializationStructure(targetType);
             PrepareMemberAccessFunctionsInternal(targetType, _memberInfoExtendeds);
             return this;
@@ -39,31 +38,23 @@ namespace SwiftySend
 
 
         public TObject GenerateObject<TObject>(SerializationNode[] serializationNodes) =>
-            (TObject)_GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoExtendeds);
+            (TObject)_Generate(() => _typeToMemberAccessFunction2[typeof(TObject)], serializationNodes);
 
 
-        private object _GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
-        {
-            object @object = null;
-            foreach(var item in memberInfoExtendeds)
-            {
-                var func = _typeToMemberAccessFunction2[targetType];
-                @object = func.Item1.Invoke(func.Item2, new object[] { serializationNodes });
-            }
-            return @object;
-        }
+
+
 
 
         private void PrepareMemberAccessFunctionsInternal(Type targetType, IList<MemberInfoExtended> memberInfoExtended)
         {
             var memberAccessFunction = _makeFuncMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
-            var objectCreatingFunction = _makeFuncMethod2.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
+            var instanceCreatingFunction = _makeFuncMethod2.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
 
             var memberAccessInvoker = typeof(Func<,>).MakeGenericType(targetType, typeof(SerializationNode[])).GetMethod("Invoke");
-            var objectCreateInvoker = typeof(Func<,>).MakeGenericType(typeof(SerializationNode[]), targetType).GetMethod("Invoke");
+            var instanceCreateInvoker = typeof(Func<,>).MakeGenericType(typeof(SerializationNode[]), targetType).GetMethod("Invoke");
 
             _typeToMemberAccessFunction.Add(targetType, (memberAccessInvoker, memberAccessFunction));
-            _typeToMemberAccessFunction2.Add(targetType, (objectCreateInvoker, objectCreatingFunction));
+            _typeToMemberAccessFunction2.Add(targetType, (instanceCreateInvoker, instanceCreatingFunction));
 
             for (int i = 0; i < memberInfoExtended.Count; i++)
             {
@@ -82,14 +73,13 @@ namespace SwiftySend
 
         private SerializationNode[] _GenerateSerializableStructureInternal(object @object, IList<MemberInfoExtended> memberInfoExtended)
         {
-            var serializationNodes = _GenerateSerializableStructureInternal(@object);
+            var serializationNodes = (SerializationNode[])_Generate(() => _typeToMemberAccessFunction[@object.GetType()], @object);
 
             for (int i = 0; i < memberInfoExtended.Count; i++)
             {
                 if (memberInfoExtended[i].IsSimpleType)
-                {
                     continue;
-                }
+
                 else if (memberInfoExtended[i].IsCollection)
                 {
                     string nodeName = memberInfoExtended[i].HasGenericParameters ? memberInfoExtended[i].GenericParameters[0].Name : "object";
@@ -108,17 +98,43 @@ namespace SwiftySend
             return serializationNodes;
         }
 
+
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //private object _GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
+        //{
+        //    object @object = null;
+        //    var func = _typeToMemberAccessFunction2[targetType];
+        //    @object = func.Item1.Invoke(func.Item2, new object[] { serializationNodes });
+        //    return @object;
+        //}
+
+
+        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        //private SerializationNode[] _GenerateSerializableStructureInternal(object @object)
+        //{
+        //    try
+        //    {
+        //        var memberAccessAggregator = _typeToMemberAccessFunction[@object.GetType()];
+        //        return (SerializationNode[])memberAccessAggregator.Item1.Invoke(memberAccessAggregator.Item2, new object[] { @object });
+        //    }
+        //    catch(KeyNotFoundException)
+        //    {
+        //        throw new InvalidOperationException($"Could not found the definition of type: {@object.GetType()}");
+        //    }
+        //}
+
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private SerializationNode[] _GenerateSerializableStructureInternal(object @object)
+        private object _Generate(Func<(MethodInfo, object)> functionResolver, object parameter)
         {
             try
             {
-                var memberAccessAggregator = _typeToMemberAccessFunction[@object.GetType()];
-                return (SerializationNode[])memberAccessAggregator.Item1.Invoke(memberAccessAggregator.Item2, new object[] { @object });
+                var memberAccessAggregator = functionResolver.Invoke();
+                return memberAccessAggregator.Item1.Invoke(memberAccessAggregator.Item2, new object[] { parameter });
             }
-            catch(KeyNotFoundException)
+            catch (KeyNotFoundException)
             {
-                throw new InvalidOperationException($"Could not found the definition of type: {@object.GetType()}");
+                throw new InvalidOperationException($"Could not found the definition of current type");
             }
         }
     }

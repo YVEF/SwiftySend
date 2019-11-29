@@ -29,10 +29,10 @@ namespace SwiftySend.PerformanceMeter
         public char CharProperty11 { get; set; }
 
 
-        //private string StringProperty12 { get => "random data"; }
+        private string StringProperty12 { get => "random data"; }
 
-        //private string StringField13 = "random data";
-        //private object ObjectField14 = new object();
+        private string StringField13 = "random data";
+        private object ObjectField14 = new object();
     }
 
     public class Dummy2
@@ -61,7 +61,7 @@ namespace SwiftySend.PerformanceMeter
         private SwiftySendSerializer SwiftySendSerializer;
 
 
-        [Params(3 /*20*//*, 50*/)]
+        [Params(3, 20)]
         public int limit;
 
         [IterationSetup]
