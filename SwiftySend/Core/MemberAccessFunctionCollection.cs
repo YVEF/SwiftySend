@@ -8,10 +8,13 @@ namespace SwiftySend.Core
 {
     internal class MemberAccessFunctionCollection
     {
-        private static MethodInfo _toString = typeof(object).GetMethod("ToString");
-        public static IList<FieldInfo> serElementField = typeof(SerializationNode).GetFields();
+        private static MethodInfo _ToString = typeof(object).GetMethod("ToString");
+        private static IList<FieldInfo> _serElementField = typeof(SerializationNode).GetFields();
+        private static MethodInfo _EnumParse = typeof(Enum).GetMethod("Parse", new Type[] { typeof(Type), typeof(string) });
+        private static MethodInfo _ToInt32 = typeof(int).GetMethod("Parse", new Type[] { typeof(string) });
+        private static MethodInfo _GetTypeFromHanlde = typeof(Type).GetMethod("GetTypeFromHandle", BindingFlags.Static | BindingFlags.Public);
 
-        
+
 
         public static Delegate MakeFuncToMemberAccess<TTarget>(IList<MemberInfoExtended> memberInfoCollection)
         {
@@ -40,7 +43,7 @@ namespace SwiftySend.Core
 
                 ilGenerator.Emit(OpCodes.Ldloca_S, 2);
                 ilGenerator.Emit(OpCodes.Ldstr, memberInfoCollection[i].MemberInfo.Name);
-                ilGenerator.Emit(OpCodes.Stfld, serElementField[0]);
+                ilGenerator.Emit(OpCodes.Stfld, _serElementField[0]);
 
                 ilGenerator.Emit(OpCodes.Ldloca_S, 2);
                 ilGenerator.Emit(OpCodes.Ldloc_0);
@@ -48,7 +51,7 @@ namespace SwiftySend.Core
 
                 _CodeGenerationAccordingToMemberForMemberAccess(ilGenerator, memberInfoCollection[i]);
 
-                ilGenerator.Emit(OpCodes.Stfld, serElementField[1]);
+                ilGenerator.Emit(OpCodes.Stfld, _serElementField[1]);
 
 
                 ilGenerator.Emit(OpCodes.Ldloc_2);
@@ -90,9 +93,8 @@ namespace SwiftySend.Core
 
                 ilGenerator.Emit(OpCodes.Ldloc_0);
 
-                ilGenerator.Emit(OpCodes.Ldloca_S, 2);
-                ilGenerator.Emit(OpCodes.Ldfld, serElementField[1]);
-                ilGenerator.Emit(OpCodes.Callvirt, _toString);
+                //ilGenerator.Emit(OpCodes.Ldloca_S, 2);
+                
                 _CodeGenerationAccordingToMemberForObjectCreating(ilGenerator, memberInfoCollection[i]);
             }
 
@@ -117,23 +119,61 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Box, memberInfoExtended.Type);
 
             if (memberInfoExtended.Type == typeof(DateTime))
-                ilGenerator.Emit(OpCodes.Callvirt, _toString);
+                ilGenerator.Emit(OpCodes.Callvirt, _ToString);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _CodeGenerationAccordingToMemberForObjectCreating(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
         {
+            if (memberInfoExtended.Type.IsEnum)
+                _EnumHandling(ilGenerator, memberInfoExtended);
+
+            else if (memberInfoExtended.Type == typeof(int))
+                _IntHandling(ilGenerator, memberInfoExtended);
+
+            else
+                _LeftTypesHandling(ilGenerator, memberInfoExtended);
+
+
             if (memberInfoExtended.MemberInfo.MemberType == MemberTypes.Property)
                 ilGenerator.Emit(OpCodes.Callvirt, ((PropertyInfo)memberInfoExtended.MemberInfo).SetMethod);
             else
-                ilGenerator.Emit(OpCodes.Stfld, (FieldInfo)memberInfoExtended.MemberInfo);
+                ilGenerator.Emit(OpCodes.Stfld, (FieldInfo)memberInfoExtended.MemberInfo);            
 
-            //if (memberInfoExtended.Type.IsValueType)
-            //    ilGenerator.Emit(OpCodes.Box, memberInfoExtended.Type);
+        }
 
-            //if (memberInfoExtended.Type == typeof(DateTime))
-            //    ilGenerator.Emit(OpCodes.Callvirt, _toString);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void _EnumHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
+        {
+            ilGenerator.Emit(OpCodes.Ldtoken, memberInfoExtended.Type);
+            ilGenerator.Emit(OpCodes.Call, _GetTypeFromHanlde);
+            ilGenerator.Emit(OpCodes.Ldloca_S, 2);
+            ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
+            ilGenerator.Emit(OpCodes.Callvirt, _ToString);
+
+            ilGenerator.Emit(OpCodes.Call, _EnumParse);
+            ilGenerator.Emit(OpCodes.Unbox_Any, memberInfoExtended.Type);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void _IntHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
+        {
+            ilGenerator.Emit(OpCodes.Ldloca_S, 2);
+            ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
+            ilGenerator.Emit(OpCodes.Callvirt, _ToString);
+            ilGenerator.Emit(OpCodes.Call, _ToInt32);
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void _LeftTypesHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
+        {
+            ilGenerator.Emit(OpCodes.Ldloca_S, 2);
+            ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
+            ilGenerator.Emit(OpCodes.Callvirt, _ToString);
         }
     }
 }

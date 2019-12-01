@@ -4,9 +4,6 @@ using BenchmarkDotNet.Running;
 using System;
 using System.Collections.Generic;
 using YAXLib;
-using System.Xml.Serialization;
-using System.IO;
-using System.Runtime.Serialization;
 
 namespace SwiftySend.PerformanceMeter
 {
@@ -29,10 +26,10 @@ namespace SwiftySend.PerformanceMeter
         public char CharProperty11 { get; set; }
 
 
-        private string StringProperty12 { get => "random data"; }
+        //private string StringProperty12 { get => "random data"; }
 
-        private string StringField13 = "random data";
-        private object ObjectField14 = new object();
+        //private string StringField13 = "random data";
+        //private object ObjectField14 = new object();
     }
 
     public class Dummy2
@@ -72,8 +69,8 @@ namespace SwiftySend.PerformanceMeter
 
             for (int i = 0; i < limit; i++)
                 _testDatas.Add(fixture.Create<Dummy>());
-            
-            
+
+
         }
 
 
@@ -95,7 +92,7 @@ namespace SwiftySend.PerformanceMeter
             {
                 string result = SwiftySendSerializer.Serialize(item);
             }
-                
+
             return SwiftySendSerializer.Serialize(_testDatas[0]);
         }
 
@@ -109,12 +106,12 @@ namespace SwiftySend.PerformanceMeter
             {
                 string result = serializer.Serialize(item);
             }
-                
+
             return serializer.Serialize(_testDatas[0]);
         }
 
 
-        
+
 
         [Benchmark]
         public string SwiftySend_WithInitialization()
@@ -124,7 +121,7 @@ namespace SwiftySend.PerformanceMeter
             {
                 string result = serializer.Serialize(item);
             }
-                
+
             return serializer.Serialize(_testDatas[0]);
         }
     }

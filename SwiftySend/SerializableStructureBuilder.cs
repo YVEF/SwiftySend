@@ -38,12 +38,16 @@ namespace SwiftySend
 
 
         public TObject GenerateObject<TObject>(SerializationNode[] serializationNodes) =>
-            (TObject)_Generate(() => _typeToMemberAccessFunction2[typeof(TObject)], serializationNodes);
+            (TObject)GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoExtendeds);
 
 
 
 
-
+        private object GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
+        {
+            var @object = _Generate(() => _typeToMemberAccessFunction2[targetType], serializationNodes);
+            return @object;
+        }
 
         private void PrepareMemberAccessFunctionsInternal(Type targetType, IList<MemberInfoExtended> memberInfoExtended)
         {
@@ -97,31 +101,6 @@ namespace SwiftySend
             }
             return serializationNodes;
         }
-
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //private object _GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
-        //{
-        //    object @object = null;
-        //    var func = _typeToMemberAccessFunction2[targetType];
-        //    @object = func.Item1.Invoke(func.Item2, new object[] { serializationNodes });
-        //    return @object;
-        //}
-
-
-        //[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //private SerializationNode[] _GenerateSerializableStructureInternal(object @object)
-        //{
-        //    try
-        //    {
-        //        var memberAccessAggregator = _typeToMemberAccessFunction[@object.GetType()];
-        //        return (SerializationNode[])memberAccessAggregator.Item1.Invoke(memberAccessAggregator.Item2, new object[] { @object });
-        //    }
-        //    catch(KeyNotFoundException)
-        //    {
-        //        throw new InvalidOperationException($"Could not found the definition of type: {@object.GetType()}");
-        //    }
-        //}
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
