@@ -1,15 +1,11 @@
 ﻿using AutoFixture;
 using SwiftySendTest.TestData;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace SwiftySendTest
 {
-    public class MoreComplexObjectSerializationTest : ObjectSerializationTestBase
+    public class MoreComplexSerializationTest : SerializationTestBase
     {
 
         [Fact]

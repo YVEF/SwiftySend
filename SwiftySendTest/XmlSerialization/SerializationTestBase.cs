@@ -5,7 +5,7 @@ using Xunit;
 
 namespace SwiftySendTest
 {
-    public abstract class ObjectSerializationTestBase
+    public abstract class SerializationTestBase
     {
         protected Fixture _fixture = new Fixture();
         public void CheckResult<TDummy>(Func<string> expectedResult, TDummy testObject)

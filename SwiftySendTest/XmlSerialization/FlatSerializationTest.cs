@@ -1,13 +1,11 @@
 using Xunit;
 using AutoFixture;
-using SwiftySend;
 using SwiftySendTest.TestData;
-using YAXLib;
 using System;
 
 namespace SwiftySendTest
 {
-    public class FlatObjectSerializationTest : ObjectSerializationTestBase
+    public class FlatSerializationTest : SerializationTestBase
     {
         
         [Fact]
