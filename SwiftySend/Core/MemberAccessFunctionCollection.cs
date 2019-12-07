@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SwiftySend.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -8,11 +9,9 @@ namespace SwiftySend.Core
 {
     internal class MemberAccessFunctionCollection
     {
-        private static MethodInfo _ToString = typeof(object).GetMethod("ToString");
+        
         private static IList<FieldInfo> _serElementField = typeof(SerializationNode).GetFields();
-        private static MethodInfo _EnumParse = typeof(Enum).GetMethod("Parse", new Type[] { typeof(Type), typeof(string) });
-        private static MethodInfo _ToInt32 = typeof(int).GetMethod("Parse", new Type[] { typeof(string) });
-        private static MethodInfo _GetTypeFromHanlde = typeof(Type).GetMethod("GetTypeFromHandle", BindingFlags.Static | BindingFlags.Public);
+        
 
 
 
@@ -119,7 +118,7 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Box, memberInfoExtended.Type);
 
             if (memberInfoExtended.Type == typeof(DateTime))
-                ilGenerator.Emit(OpCodes.Callvirt, _ToString);
+                ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
         }
 
 
@@ -129,8 +128,11 @@ namespace SwiftySend.Core
             if (memberInfoExtended.Type.IsEnum)
                 _EnumHandling(ilGenerator, memberInfoExtended);
 
-            else if (memberInfoExtended.Type == typeof(int))
-                _IntHandling(ilGenerator, memberInfoExtended);
+            else if (memberInfoExtended.Type.IsPrimitive || memberInfoExtended.Type == typeof(decimal))
+                _PrimitiveHandling(ilGenerator, memberInfoExtended);
+
+            else if (memberInfoExtended.Type == typeof(DateTime))
+                _DateTimeHandling(ilGenerator);
 
             else
                 _LeftTypesHandling(ilGenerator, memberInfoExtended);
@@ -148,23 +150,64 @@ namespace SwiftySend.Core
         private static void _EnumHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
         {
             ilGenerator.Emit(OpCodes.Ldtoken, memberInfoExtended.Type);
-            ilGenerator.Emit(OpCodes.Call, _GetTypeFromHanlde);
+            ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Reflections.__GetTypeFromHanlde);
             ilGenerator.Emit(OpCodes.Ldloca_S, 2);
             ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
-            ilGenerator.Emit(OpCodes.Callvirt, _ToString);
+            ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
 
-            ilGenerator.Emit(OpCodes.Call, _EnumParse);
+            ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__EnumParse);
             ilGenerator.Emit(OpCodes.Unbox_Any, memberInfoExtended.Type);
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void _IntHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
+        private static void _PrimitiveHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
         {
             ilGenerator.Emit(OpCodes.Ldloca_S, 2);
             ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
-            ilGenerator.Emit(OpCodes.Callvirt, _ToString);
-            ilGenerator.Emit(OpCodes.Call, _ToInt32);
+            ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
+
+            // frequently-used
+            if (memberInfoExtended.Type == typeof(int))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToInt32);
+            else if (memberInfoExtended.Type == typeof(bool))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToBoolean);
+            else if (memberInfoExtended.Type == typeof(char))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToChar);
+            else if (memberInfoExtended.Type == typeof(double))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToDouble);
+            else if (memberInfoExtended.Type == typeof(byte))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToByte);
+            else if (memberInfoExtended.Type == typeof(long))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToInt64);
+            else if (memberInfoExtended.Type == typeof(decimal))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToDecimal);
+
+            // rarely-used
+            else if (memberInfoExtended.Type == typeof(float))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToSingle);
+            else if (memberInfoExtended.Type == typeof(short))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToInt16);
+            else if (memberInfoExtended.Type == typeof(uint))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToUInt32);
+            else if (memberInfoExtended.Type == typeof(ulong))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToUInt64);
+            else if (memberInfoExtended.Type == typeof(ushort))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToUInt16);
+            else if (memberInfoExtended.Type == typeof(sbyte))
+                ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToSByte);
+            
+            
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void _DateTimeHandling(ILGenerator ilGenerator)
+        {
+            ilGenerator.Emit(OpCodes.Ldloca_S, 2);
+            ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
+            ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
+
+            ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToDateTime);
         }
 
 
@@ -173,7 +216,7 @@ namespace SwiftySend.Core
         {
             ilGenerator.Emit(OpCodes.Ldloca_S, 2);
             ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
-            ilGenerator.Emit(OpCodes.Callvirt, _ToString);
+            ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
         }
     }
 }

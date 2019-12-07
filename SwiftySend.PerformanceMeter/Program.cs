@@ -36,12 +36,21 @@ namespace SwiftySend.PerformanceMeter
     {
         public string Property { get; set; }
     }
+
+    public class Dummy3
+    {
+        public object ObjectProperty { get; set; }
+    }
     class Program
     {
         static void Main(string[] args)
         {
+            var ser1 = new YAXSerializer(typeof(Dummy3));
+            var dummy = new Dummy3() { ObjectProperty = "hello" };
+            var xml = ser1.Serialize(dummy);
+            var result = (Dummy3)ser1.Deserialize(xml);
 
-            var summary = BenchmarkRunner.Run<TestingGround>();
+            //var summary = BenchmarkRunner.Run<TestingGround>();
 
             Console.Read();
         }

@@ -32,7 +32,7 @@ namespace SwiftySendTest.TestData
 
         public static string GetXml(Dummy6 dummy) =>
             $"<Dummy6>\r\n  <DateTimeProperty>{dummy.DateTimeProperty.ToString()}</DateTimeProperty>\r\n  " +
-            $"<DateTimeField>{dummy.DateTimeField}</DateTimeField>\r\n</Dummy6>";
+            $"<DateTimeField>{dummy.DateTimeField.ToString()}</DateTimeField>\r\n</Dummy6>";
 
 
 

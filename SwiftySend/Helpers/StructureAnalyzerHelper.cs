@@ -15,49 +15,46 @@ namespace SwiftySend.Helpers
         {
             var memberCollection = new List<MemberInfoExtended>();
 
-            foreach (var propertyInfo in targetType.GetProperties(_BindingFlags))
-            {
-                if (_IsSimpleType(propertyInfo.PropertyType))
-                    memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
 
-                else if (_IsCollection(propertyInfo.PropertyType))
+            foreach(var memberInfo in targetType.GetMembers(_BindingFlags))
+            {
+                if(memberInfo.MemberType == MemberTypes.Property && memberInfo is PropertyInfo propertyInfo)
                 {
-                    var memberInfo = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType, isCollection: true);
-                    if (propertyInfo.PropertyType.IsGenericType)
+                    if (_IsSimpleType(propertyInfo.PropertyType))
+                        memberCollection.Add(new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType));
+
+                    else if (_IsCollection(propertyInfo.PropertyType))
                     {
-                        memberInfo.GenericParameters = propertyInfo.PropertyType.GetGenericArguments();
-                        foreach (var type in memberInfo.GenericParameters)
+                        var memberInfoExtended = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType, isCollection: true);
+                        if (propertyInfo.PropertyType.IsGenericType)
                         {
-                            if (_IsSimpleType(type))
-                                continue;
-                            memberInfo.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(type));
-                        }                            
+                            memberInfoExtended.GenericParameters = propertyInfo.PropertyType.GetGenericArguments();
+                            foreach (var type in memberInfoExtended.GenericParameters)
+                            {
+                                if (_IsSimpleType(type))
+                                    continue;
+                                memberInfoExtended.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(type));
+                            }
+                        }
+                        memberCollection.Add(memberInfoExtended);
                     }
-                    memberCollection.Add(memberInfo);
                 }
-                else
+                else if(memberInfo.MemberType == MemberTypes.Field && memberInfo is FieldInfo fieldInfo)
                 {
-                    var memberInfo = new MemberInfoExtended(propertyInfo, propertyInfo.PropertyType);
-                    memberInfo.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(propertyInfo.PropertyType));
-                    memberCollection.Add(memberInfo);
+                    if (fieldInfo.Name.EndsWith(">k__BackingField"))
+                        continue;
+
+                    if (_IsSimpleType(fieldInfo.FieldType))
+                        memberCollection.Add(new MemberInfoExtended(fieldInfo, fieldInfo.FieldType));
+                    else
+                    {
+                        var memberInfoExtended = new MemberInfoExtended(fieldInfo, fieldInfo.FieldType);
+                        memberInfoExtended.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(fieldInfo.FieldType));
+                        memberCollection.Add(memberInfoExtended);
+                    }
                 }
             }
 
-
-            foreach (var fieldInfo in targetType.GetFields(_BindingFlags))
-            {
-                if (fieldInfo.Name.EndsWith(">k__BackingField"))
-                    continue;
-
-                if (_IsSimpleType(fieldInfo.FieldType))
-                    memberCollection.Add(new MemberInfoExtended(fieldInfo, fieldInfo.FieldType));
-                else
-                {
-                    var memberInfo = new MemberInfoExtended(fieldInfo, fieldInfo.FieldType);
-                    memberInfo.NestedMembers.AddRange(AnalyzeAndPrepareSerializationStructure(fieldInfo.FieldType));
-                    memberCollection.Add(memberInfo);
-                }
-            }
             return memberCollection;
         }
 

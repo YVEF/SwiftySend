@@ -14,7 +14,7 @@ namespace SwiftySendTest.XmlDeserialization
             var serializer = new SwiftySendSerializer(typeof(TObject));
             var result = serializer.Deserialize<TObject>(getXmlString.Invoke());
 
-            expectedResult.Should().BeEquivalentTo(result);
+            result.Should().BeEquivalentTo(expectedResult);
         }
     }
 }
