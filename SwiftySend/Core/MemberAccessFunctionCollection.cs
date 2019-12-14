@@ -141,10 +141,8 @@ namespace SwiftySend.Core
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _CodeGenerationAccordingToMemberForObjectCreating(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
         {
-            if(!memberInfoExtended.IsSimpleType)
-            {
+            if(!memberInfoExtended.IsSimpleType && !memberInfoExtended.IsCollection)
                 ilGenerator.Emit(OpCodes.Newobj, memberInfoExtended.Type.GetConstructors()[0]);
-            }
 
             else if (memberInfoExtended.Type.IsEnum)
                 _EnumHandling(ilGenerator, memberInfoExtended);
