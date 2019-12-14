@@ -9,7 +9,7 @@ namespace SwiftySendTest.XmlDeserialization
     {
         protected Fixture _fixture = new Fixture();
 
-        public void Chech<TObject>(Func<string> getXmlString, TObject expectedResult)
+        public void Check<TObject>(Func<string> getXmlString, TObject expectedResult)
         {
             var serializer = new SwiftySendSerializer(typeof(TObject));
             var result = serializer.Deserialize<TObject>(getXmlString.Invoke());
