@@ -45,12 +45,7 @@ namespace SwiftySend.PerformanceMeter
     {
         static void Main(string[] args)
         {
-            var ser1 = new YAXSerializer(typeof(Dummy3));
-            var dummy = new Dummy3() { ObjectProperty = "hello" };
-            var xml = ser1.Serialize(dummy);
-            var result = (Dummy3)ser1.Deserialize(xml);
-
-            //var summary = BenchmarkRunner.Run<TestingGround>();
+            var summary = BenchmarkRunner.Run<TestingGround>();
 
             Console.Read();
         }
@@ -61,7 +56,9 @@ namespace SwiftySend.PerformanceMeter
     public class TestingGround
     {
         private Fixture fixture = new Fixture();
-        private IList<Dummy> _testDatas = new List<Dummy>();
+        private IList<Dummy> _testDataObjects = new List<Dummy>();
+        private IList<string> _testDataSwiftySendXmls = new List<string>();
+        private IList<string> _testDataYaxLibXmls = new List<string>();
 
         private YAXSerializer YAXSerializer;
         private SwiftySendSerializer SwiftySendSerializer;
@@ -77,7 +74,15 @@ namespace SwiftySend.PerformanceMeter
             SwiftySendSerializer = new SwiftySendSerializer(typeof(Dummy));
 
             for (int i = 0; i < limit; i++)
-                _testDatas.Add(fixture.Create<Dummy>());
+                _testDataObjects.Add(fixture.Create<Dummy>());
+
+            var swifty = new SwiftySendSerializer(typeof(Dummy));
+            var yax = new YAXSerializer(typeof(Dummy));
+            foreach(var item in _testDataObjects)
+            {
+                _testDataSwiftySendXmls.Add(swifty.Serialize(item));
+                _testDataYaxLibXmls.Add(yax.Serialize(item));
+            }
 
 
         }
@@ -85,53 +90,114 @@ namespace SwiftySend.PerformanceMeter
 
 
         [Benchmark]
-        public string Yaxlib_WithoutInitialization()
+        public string Yaxlib_Serialization_Without_Initialization()
         {
-            foreach (var item in _testDatas)
+            foreach (var item in _testDataObjects)
             {
                 string result = YAXSerializer.Serialize(item);
+                string m = result;
             }
-            return YAXSerializer.Serialize(_testDatas[0]);
+            return YAXSerializer.Serialize(_testDataObjects[0]);
         }
 
         [Benchmark]
-        public string SwiftySend_WithoutInitialization()
+        public string SwiftySend_Serialization_Without_Initialization()
         {
-            foreach (var item in _testDatas)
+            foreach (var item in _testDataObjects)
             {
                 string result = SwiftySendSerializer.Serialize(item);
+                string m = result;
             }
 
-            return SwiftySendSerializer.Serialize(_testDatas[0]);
+            return SwiftySendSerializer.Serialize(_testDataObjects[0]);
         }
 
 
 
         [Benchmark]
-        public string Yaxlib_WithInitialization()
+        public string Yaxlib_Serialization_With_Initialization()
         {
             var serializer = new YAXSerializer(typeof(Dummy));
-            foreach (var item in _testDatas)
+            foreach (var item in _testDataObjects)
             {
                 string result = serializer.Serialize(item);
+                string m = result;
             }
 
-            return serializer.Serialize(_testDatas[0]);
+            return serializer.Serialize(_testDataObjects[0]);
         }
 
 
 
 
         [Benchmark]
-        public string SwiftySend_WithInitialization()
+        public string SwiftySend_Serialization_With_Initialization()
         {
             var serializer = new SwiftySendSerializer(typeof(Dummy));
-            foreach (var item in _testDatas)
+            foreach (var item in _testDataObjects)
             {
                 string result = serializer.Serialize(item);
+                string m = result;
             }
 
-            return serializer.Serialize(_testDatas[0]);
+            return serializer.Serialize(_testDataObjects[0]);
+        }
+
+        [Benchmark]
+        public string Yaxlib_Deserialization_Without_Initialization()
+        {
+            foreach (var item in _testDataYaxLibXmls)
+            {
+                Dummy result = (Dummy)YAXSerializer.Deserialize(item);
+                bool a = result.BoolProperty7;
+            }
+
+            return YAXSerializer.Serialize(_testDataObjects[0]);
+        }
+
+
+
+
+        [Benchmark]
+        public string SwiftySend_Deserialization_Without_Initialization()
+        {
+            foreach (var item in _testDataSwiftySendXmls)
+            {
+                Dummy result = SwiftySendSerializer.Deserialize<Dummy>(item);
+                bool a = result.BoolProperty7;
+            }
+
+            return SwiftySendSerializer.Serialize(_testDataObjects[0]);
+        }
+
+
+        [Benchmark]
+        public string Yaxlib_Deserialization_With_Initialization()
+        {
+            var serializer = new YAXSerializer(typeof(Dummy));
+            foreach (var item in _testDataYaxLibXmls)
+            {
+                Dummy result = (Dummy)serializer.Deserialize(item);
+                bool a = result.BoolProperty7;
+            }
+
+            return serializer.Serialize(_testDataObjects[0]);
+        }
+
+
+
+
+        [Benchmark]
+        public string SwiftySend_Deserialization_With_Initialization()
+        {
+            var serializer = new SwiftySendSerializer(typeof(Dummy));
+            foreach (var item in _testDataSwiftySendXmls)
+            {
+                Dummy result = serializer.Deserialize<Dummy>(item);
+                bool a = result.BoolProperty7;
+            }
+
+            return serializer.Serialize(_testDataObjects[0]);
         }
     }
 }
