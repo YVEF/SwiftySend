@@ -8,7 +8,7 @@ namespace SwiftySendTest
     public abstract class SerializationTestBase
     {
         protected Fixture _fixture = new Fixture();
-        public void CheckResult<TDummy>(Func<string> expectedResult, TDummy testObject)
+        public void Check<TDummy>(Func<string> expectedResult, TDummy testObject)
         {
             var swiftySerializer = new SwiftySendSerializer(typeof(TDummy));
             var result = swiftySerializer.Serialize(testObject);

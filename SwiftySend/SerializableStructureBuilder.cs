@@ -11,18 +11,26 @@ namespace SwiftySend
 {
     internal class SerializableStructureBuilder
     {
-
         private IList<MemberInfoExtended> _memberInfoExtendeds;
-        private MethodInfo _makeFuncMethod =
+
+        private MethodInfo _memberAccessingInlinedMethod =
             typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToMemberAccess",
                 BindingFlags.Static | BindingFlags.Public);
 
-        private MethodInfo _makeFuncMethod2 = typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToObjectCreatingAndFilling",
+        private MethodInfo _objectCreatingInlinedMethod = 
+            typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToObjectCreatingAndFilling",
             BindingFlags.Static | BindingFlags.Public);
+
+        private MethodInfo _memberAssigningInlinedMethod =
+            typeof(MemberAccessFunctionCollection).GetMethod("MakeActionToMemberAssigning",
+            BindingFlags.Static | BindingFlags.Public);
+
+
 
 
         private Dictionary<Type, (MethodInfo, object)> _typeToMemberAccessFunction = new Dictionary<Type, (MethodInfo, object)>();
         private Dictionary<Type, (MethodInfo, object)> _typeToMemberAccessFunction2 = new Dictionary<Type, (MethodInfo, object)>();
+        private Dictionary<Type, (MethodInfo, object)> _typeToMemberAssigningFunction = new Dictionary<Type, (MethodInfo, object)>();
 
 
         public SerializableStructureBuilder Build(Type targetType)
@@ -38,82 +46,115 @@ namespace SwiftySend
 
 
         public TObject GenerateObject<TObject>(SerializationNode[] serializationNodes) =>
-            (TObject)GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoExtendeds);
+            (TObject)_GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoExtendeds);
 
 
 
 
-        private object GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
+        private object _GenerateObjectInternal(Type targetType, SerializationNode[] serializationNodes, IList<MemberInfoExtended> memberInfoExtendeds)
         {
-            var @object = _Generate(() => _typeToMemberAccessFunction2[targetType], serializationNodes);
+            object @object = _ExecuteFunction(() => _typeToMemberAccessFunction2[targetType], serializationNodes);
+
+            for (int i = 0; i < memberInfoExtendeds.Count; i++)
+            {
+                if (memberInfoExtendeds[i].IsSimpleType)
+                    continue;
+
+                //else if (memberInfoExtendeds[i].IsCollection)
+                //{
+                //    string nodeName = memberInfoExtendeds[i].HasGenericParameters ? memberInfoExtendeds[i].GenericParameters[0].Name : "object";
+
+                //    if (memberInfoExtendeds[i].IsSimpleCollection)
+                //        serializationNodes[i].NestedNodes = ((IEnumerable)serializationNodes[i].Value)
+                //            .Select(x => new SerializationNode() { Value = x, Name = nodeName });
+
+                //    else
+                //        serializationNodes[i].NestedNodes = ((IEnumerable)serializationNodes[i].Value)
+                //            .Select(x => new SerializationNode() { Name = nodeName, NestedNodes = _GenerateSerializableStructureInternal(x, memberInfoExtendeds[i].NestedMembers) });
+                //}
+                else
+                {
+                    object result = _GenerateObjectInternal(memberInfoExtendeds[i].Type, serializationNodes[i].NestedNodes.ToArray(), memberInfoExtendeds[i].NestedMembers);
+                    _ExecuteFunction(() => _typeToMemberAssigningFunction[memberInfoExtendeds[i].Type], @object, result);
+                }
+            }
+
             return @object;
         }
 
         private void PrepareMemberAccessFunctionsInternal(Type targetType, IList<MemberInfoExtended> memberInfoExtended)
         {
-            var memberAccessFunction = _makeFuncMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
-            var instanceCreatingFunction = _makeFuncMethod2.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
+            var memberAccessFunction = _memberAccessingInlinedMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
+            var instanceCreatingFunction = _objectCreatingInlinedMethod.MakeGenericMethod(targetType).Invoke(null, new object[] { memberInfoExtended });
 
             var memberAccessInvoker = typeof(Func<,>).MakeGenericType(targetType, typeof(SerializationNode[])).GetMethod("Invoke");
-            var instanceCreateInvoker = typeof(Func<,>).MakeGenericType(typeof(SerializationNode[]), targetType).GetMethod("Invoke");
+            var instanceCreateInvoker = typeof(Func<,>).MakeGenericType(typeof(SerializationNode[]), targetType).GetMethod("Invoke");            
 
             _typeToMemberAccessFunction.Add(targetType, (memberAccessInvoker, memberAccessFunction));
-            _typeToMemberAccessFunction2.Add(targetType, (instanceCreateInvoker, instanceCreatingFunction));
+            _typeToMemberAccessFunction2.Add(targetType, (instanceCreateInvoker, instanceCreatingFunction));            
 
             for (int i = 0; i < memberInfoExtended.Count; i++)
             {
                 if (memberInfoExtended[i].IsSimpleType || memberInfoExtended[i].IsSimpleCollection)
-                    continue;
+                    continue;                
 
                 else if(memberInfoExtended[i].IsCollection)
                     PrepareMemberAccessFunctionsInternal(memberInfoExtended[i].GenericParameters[0], memberInfoExtended[i].NestedMembers);
 
                 else
                     PrepareMemberAccessFunctionsInternal(memberInfoExtended[i].Type, memberInfoExtended[i].NestedMembers);
-                
+
+                var memberAssigningAction = _memberAssigningInlinedMethod.MakeGenericMethod(targetType, memberInfoExtended[i].Type)
+                    .Invoke(null, new object[] { memberInfoExtended[i] });
+                var memberAssigningInvoker = typeof(Action<object, object>).GetMethod("Invoke");
+                _typeToMemberAssigningFunction.Add(memberInfoExtended[i].Type, (memberAssigningInvoker, memberAssigningAction));
             }
         }
 
 
-        private SerializationNode[] _GenerateSerializableStructureInternal(object @object, IList<MemberInfoExtended> memberInfoExtended)
+        private SerializationNode[] _GenerateSerializableStructureInternal(object @object, IList<MemberInfoExtended> memberInfoExtendeds)
         {
-            var serializationNodes = (SerializationNode[])_Generate(() => _typeToMemberAccessFunction[@object.GetType()], @object);
+            var serializationNodes = (SerializationNode[])_ExecuteFunction(() => _typeToMemberAccessFunction[@object.GetType()], @object);
 
-            for (int i = 0; i < memberInfoExtended.Count; i++)
+            for (int i = 0; i < memberInfoExtendeds.Count; i++)
             {
-                if (memberInfoExtended[i].IsSimpleType)
+                if (memberInfoExtendeds[i].IsSimpleType)
                     continue;
 
-                else if (memberInfoExtended[i].IsCollection)
+                else if (memberInfoExtendeds[i].IsCollection)
                 {
-                    string nodeName = memberInfoExtended[i].HasGenericParameters ? memberInfoExtended[i].GenericParameters[0].Name : "object";
+                    string nodeName = memberInfoExtendeds[i].HasGenericParameters ? memberInfoExtendeds[i].GenericParameters[0].Name : "object";
 
-                    if (memberInfoExtended[i].IsSimpleCollection)
+                    if (memberInfoExtendeds[i].IsSimpleCollection)
                         serializationNodes[i].NestedNodes = ((IEnumerable)serializationNodes[i].Value)
                             .Select(x => new SerializationNode() { Value = x, Name = nodeName });
 
                     else
                         serializationNodes[i].NestedNodes = ((IEnumerable)serializationNodes[i].Value)
-                            .Select(x => new SerializationNode() { Name = nodeName, NestedNodes = _GenerateSerializableStructureInternal(x, memberInfoExtended[i].NestedMembers) });
+                            .Select(x => new SerializationNode() { Name = nodeName, NestedNodes = _GenerateSerializableStructureInternal(x, memberInfoExtendeds[i].NestedMembers) });
                 }
                 else
-                    serializationNodes[i].NestedNodes = _GenerateSerializableStructureInternal(serializationNodes[i].Value, memberInfoExtended[i].NestedMembers);
+                    serializationNodes[i].NestedNodes = _GenerateSerializableStructureInternal(serializationNodes[i].Value, memberInfoExtendeds[i].NestedMembers);
             }
             return serializationNodes;
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object _Generate(Func<(MethodInfo, object)> functionResolver, object parameter)
+        private object _ExecuteFunction(Func<(MethodInfo, object)> functionResolver, params object[] parameter)
         {
             try
             {
-                var memberAccessAggregator = functionResolver.Invoke();
-                return memberAccessAggregator.Item1.Invoke(memberAccessAggregator.Item2, new object[] { parameter });
+                var functionAggregator = functionResolver.Invoke();
+                return functionAggregator.Item1.Invoke(functionAggregator.Item2, parameter);
             }
             catch (KeyNotFoundException)
             {
                 throw new InvalidOperationException($"Could not found the definition of current type");
+            }
+            catch(Exception ex)
+            {
+                throw new Exception("Something wrong");
             }
         }
     }

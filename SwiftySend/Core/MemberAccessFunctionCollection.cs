@@ -10,10 +10,7 @@ namespace SwiftySend.Core
     internal class MemberAccessFunctionCollection
     {
         
-        private static IList<FieldInfo> _serElementField = typeof(SerializationNode).GetFields();
-        
-
-
+        private static IList<FieldInfo> _serElementField = typeof(SerializationNode).GetFields();      
 
         public static Delegate MakeFuncToMemberAccess<TTarget>(IList<MemberInfoExtended> memberInfoCollection)
         {
@@ -47,11 +44,9 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Ldloca_S, 2);
                 ilGenerator.Emit(OpCodes.Ldloc_0);
 
-
                 _CodeGenerationAccordingToMemberForMemberAccess(ilGenerator, memberInfoCollection[i]);
 
                 ilGenerator.Emit(OpCodes.Stfld, _serElementField[1]);
-
 
                 ilGenerator.Emit(OpCodes.Ldloc_2);
                 ilGenerator.Emit(OpCodes.Stelem, typeof(SerializationNode));
@@ -65,7 +60,7 @@ namespace SwiftySend.Core
 
 
 
-        public static Func<SerializationNode[], TTarget> MakeFuncToObjectCreatingAndFilling<TTarget>(IList<MemberInfoExtended> memberInfoCollection)
+        public static Delegate MakeFuncToObjectCreatingAndFilling<TTarget>(IList<MemberInfoExtended> memberInfoCollection)
         {
             DynamicMethod dynamicMethod = new DynamicMethod("ObjectCreating", typeof(TTarget), new Type[] { typeof(SerializationNode[]) }, typeof(TTarget));
 
@@ -74,14 +69,11 @@ namespace SwiftySend.Core
             ilGenerator.DeclareLocal(typeof(SerializationNode[]));
             ilGenerator.DeclareLocal(typeof(SerializationNode));
 
-
             ilGenerator.Emit(OpCodes.Newobj, typeof(TTarget).GetConstructors()[0]);
             ilGenerator.Emit(OpCodes.Stloc_0);
 
-
             ilGenerator.Emit(OpCodes.Ldarg_0);
             ilGenerator.Emit(OpCodes.Stloc_1);
-
 
             for (int i = 0; i < memberInfoCollection.Count; i++)
             {
@@ -91,8 +83,6 @@ namespace SwiftySend.Core
                 ilGenerator.Emit(OpCodes.Stloc_2);
 
                 ilGenerator.Emit(OpCodes.Ldloc_0);
-
-                //ilGenerator.Emit(OpCodes.Ldloca_S, 2);
                 
                 _CodeGenerationAccordingToMemberForObjectCreating(ilGenerator, memberInfoCollection[i]);
             }
@@ -101,10 +91,36 @@ namespace SwiftySend.Core
             ilGenerator.Emit(OpCodes.Ldloc_0);
             ilGenerator.Emit(OpCodes.Ret);
 
-            return (Func<SerializationNode[], TTarget>)dynamicMethod.CreateDelegate(typeof(Func<SerializationNode[], TTarget>));
+            return dynamicMethod.CreateDelegate(typeof(Func<SerializationNode[], TTarget>));
         }
 
 
+        public static Delegate MakeActionToMemberAssigning<TObject, TMember>(MemberInfoExtended memberInfoExtended)
+        {
+            var dynamicMethod = new DynamicMethod("MemberAssigning", typeof(void), new Type[] { typeof(object), typeof(object) }, typeof(TObject));
+            var ilGenerator = dynamicMethod.GetILGenerator();
+
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Castclass, typeof(TObject));
+
+            ilGenerator.Emit(OpCodes.Ldarg_1);
+            ilGenerator.Emit(OpCodes.Castclass, typeof(TMember));
+
+            _AssignToMember(ilGenerator, memberInfoExtended);            
+
+            ilGenerator.Emit(OpCodes.Ret);
+
+            return dynamicMethod.CreateDelegate(typeof(Action<object, object>));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void _AssignToMember(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
+        {
+            if (memberInfoExtended.MemberInfo.MemberType == MemberTypes.Property)
+                ilGenerator.Emit(OpCodes.Callvirt, ((PropertyInfo)memberInfoExtended.MemberInfo).SetMethod);
+            else
+                ilGenerator.Emit(OpCodes.Stfld, (FieldInfo)memberInfoExtended.MemberInfo);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _CodeGenerationAccordingToMemberForMemberAccess(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
@@ -125,7 +141,12 @@ namespace SwiftySend.Core
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _CodeGenerationAccordingToMemberForObjectCreating(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
         {
-            if (memberInfoExtended.Type.IsEnum)
+            if(!memberInfoExtended.IsSimpleType)
+            {
+                ilGenerator.Emit(OpCodes.Newobj, memberInfoExtended.Type.GetConstructors()[0]);
+            }
+
+            else if (memberInfoExtended.Type.IsEnum)
                 _EnumHandling(ilGenerator, memberInfoExtended);
 
             else if (memberInfoExtended.Type.IsPrimitive || memberInfoExtended.Type == typeof(decimal))
@@ -137,12 +158,7 @@ namespace SwiftySend.Core
             else
                 _LeftTypesHandling(ilGenerator, memberInfoExtended);
 
-
-            if (memberInfoExtended.MemberInfo.MemberType == MemberTypes.Property)
-                ilGenerator.Emit(OpCodes.Callvirt, ((PropertyInfo)memberInfoExtended.MemberInfo).SetMethod);
-            else
-                ilGenerator.Emit(OpCodes.Stfld, (FieldInfo)memberInfoExtended.MemberInfo);            
-
+            _AssignToMember(ilGenerator, memberInfoExtended);          
         }
 
 
