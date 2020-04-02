@@ -8,12 +8,12 @@ namespace SwiftySend
     public class SwiftySendSerializer
     {
         private readonly Type _targetType;        
-        private readonly SerializableStructureBuilder _serializableStructureBuilder;        
+        private readonly SerializableStructureBuilder _serializableStructureBuilder;
+        private readonly SwiftyReader _reader = new SwiftyReader();
 
         public SwiftySendSerializer(Type targetType)
         {
             _targetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
-
             _serializableStructureBuilder = new SerializableStructureBuilder().Build(targetType);
         }
 
@@ -28,7 +28,7 @@ namespace SwiftySend
 
 
             var serializationNodes = _serializableStructureBuilder.GenerateSerializableStructure(@object);
-            return new SwiftySendXmlWriter(typeof(TObject), serializationNodes).CreateXml().ToString();
+            return new SwiftyWriter(typeof(TObject), serializationNodes).CreateXml().ToString();
         }
 
 
@@ -39,10 +39,8 @@ namespace SwiftySend
 
             _CheckRequirementsForType<TObject>();
 
-
-            var reader = new SwiftySendXmlReader(xmlInput);
-            var serializationNodes = reader.ParseXml();
-
+            var serializationNodes = _serializableStructureBuilder.ReorderObjectMembersIfNeeded(_reader.ParseXml(xmlInput));
+            // [TODO]: need resolve problem with ToArray()
             var result = _serializableStructureBuilder.GenerateObject<TObject>(serializationNodes.ToArray());
 
             return result;

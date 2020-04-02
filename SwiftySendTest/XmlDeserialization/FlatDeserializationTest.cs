@@ -48,7 +48,48 @@ namespace SwiftySendTest.XmlDeserialization
                 .Build<Dummy5>()
                     .With(x => x.ObjectField, "randome string")
                 .Create();
+            var ser = new SwiftySendSerializer(typeof(Dummy5));
+            var xml = ser.Serialize(dummy);
+            var rxml = XmlRepresentation.GetXml(dummy);
+            var newdummy = ser.Deserialize<Dummy5>(xml);
+            var newnewdummy = ser.Deserialize<Dummy5>(rxml);
+
             Check(() => XmlRepresentation.GetXml(dummy), dummy);
+        }
+
+        [Fact]
+        public void Test1()
+        {
+            var dd = _fixture.Build<DD>()
+                //.With(x => x.ObjectFiled, "random string1")
+                .With(x => x.ObjectProperty, "random string2")
+                .Create();
+            var ser = new SwiftySendSerializer(typeof(DD));
+            string xml = ser.Serialize(dd);
+            var newdd = ser.Deserialize<DD>(xml);
+        }
+
+        internal class DD
+        {
+            //public string StringProperty { get; set; }
+            //public string StringField;
+            public object ObjectProperty { get; set; }
+            //public object ObjectFiled;
+            //public int IntField;
+            public int IntProperty { get; set; }
+            //public decimal DecimalField;
+            //public decimal DecimalProperty { get; set; }
+            //public char CharField;
+            //public char CharProperty { get; set; }
+            //public long LongProperty { get; set; }
+            //public byte ByteProperty { get; set; }
+            //public byte ByteField;
+            //public long LongField;
+            //public DummyEnum DummyEnumProperty { get; set; }
+            //public DummyEnum DummyEnumField;
+            //public float FloatProperty { get; set; }
+            //public bool BoolProperty { get; set; }
+            //public short ShortProperty { get; set; }
         }
 
 

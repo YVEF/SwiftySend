@@ -3,7 +3,7 @@ using SwiftySend;
 using System;
 using Xunit;
 
-namespace SwiftySendTest
+namespace SwiftySendTest.XmlSerialization
 {
     public abstract class SerializationTestBase
     {

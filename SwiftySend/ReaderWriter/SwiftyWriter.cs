@@ -5,14 +5,14 @@ using System.Xml.Linq;
 
 namespace SwiftySend.ReaderWriter
 {
-    internal class SwiftySendXmlWriter
+    internal class SwiftyWriter
     {
         private readonly IList<SerializationNode> _serializationNodes;
 
         private readonly XDocument _xmlDocument;
         private readonly XElement _rootElement;
 
-        public SwiftySendXmlWriter(Type rootType, IList<SerializationNode> serializationNodes)
+        public SwiftyWriter(Type rootType, IList<SerializationNode> serializationNodes)
         {
             _serializationNodes = serializationNodes ?? throw new ArgumentNullException(nameof(serializationNodes));
             _rootElement = new XElement(rootType.Name);

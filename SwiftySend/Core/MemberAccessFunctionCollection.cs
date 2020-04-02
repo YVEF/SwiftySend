@@ -174,15 +174,18 @@ namespace SwiftySend.Core
         }
 
 
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void _PrimitiveHandling(ILGenerator ilGenerator, MemberInfoExtended memberInfoExtended)
         {
             ilGenerator.Emit(OpCodes.Ldloca_S, 2);
             ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
-            ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
+            
 
             // frequently-used
-            if (memberInfoExtended.Type == typeof(int))
+            if(memberInfoExtended.Type == typeof(string))
+                ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
+            else if (memberInfoExtended.Type == typeof(int))
                 ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToInt32);
             else if (memberInfoExtended.Type == typeof(bool))
                 ilGenerator.Emit(OpCodes.Call, SharedFunctionsAggregator.Converters.__ToBoolean);
@@ -230,7 +233,7 @@ namespace SwiftySend.Core
         {
             ilGenerator.Emit(OpCodes.Ldloca_S, 2);
             ilGenerator.Emit(OpCodes.Ldfld, _serElementField[1]);
-            ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
+            //ilGenerator.Emit(OpCodes.Callvirt, SharedFunctionsAggregator.Converters.__ToString);
         }
     }
 }

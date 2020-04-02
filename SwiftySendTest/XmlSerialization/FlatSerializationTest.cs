@@ -3,7 +3,7 @@ using AutoFixture;
 using SwiftySendTest.TestData;
 using System;
 
-namespace SwiftySendTest
+namespace SwiftySendTest.XmlSerialization
 {
     public class FlatSerializationTest : SerializationTestBase
     {

@@ -11,7 +11,7 @@ namespace SwiftySend
 {
     internal class SerializableStructureBuilder
     {
-        private IList<MemberInfoExtended> _memberInfoExtendeds;
+        private IList<MemberInfoExtended> _memberInfoCollection;
 
         private MethodInfo _memberAccessingInlinedMethod =
             typeof(MemberAccessFunctionCollection).GetMethod("MakeFuncToMemberAccess",
@@ -35,18 +35,41 @@ namespace SwiftySend
 
         public SerializableStructureBuilder Build(Type targetType)
         {
-            _memberInfoExtendeds = StructureAnalyzerHelper.AnalyzeAndPrepareSerializationStructure(targetType);
-            PrepareMemberAccessFunctionsInternal(targetType, _memberInfoExtendeds);
+            _memberInfoCollection = StructureAnalyzerHelper.AnalyzeAndPrepareSerializationStructure(targetType);
+            PrepareMemberAccessFunctionsInternal(targetType, _memberInfoCollection);
             return this;
         }
-        
+
+        public IList<SerializationNode> ReorderObjectMembersIfNeeded(IList<SerializationNode> serializationNodes)
+        {
+            var nameSet = new Dictionary<string, int>();
+
+            for (int i = 0; i < _memberInfoCollection.Count; i++)
+                nameSet.Add(_memberInfoCollection[i].MemberInfo.Name, i);
+
+            // [TODO]: change this behavior when attribute for node name handling will be introduced
+            bool needReordering = false;
+            for (int i = 0; i < serializationNodes.Count; i++)
+            {
+                if(nameSet[serializationNodes[i].Name] != i)
+                {
+                    needReordering = true;
+                    break;
+                }    
+            }
+            var result = serializationNodes;
+            if (needReordering)
+                result = serializationNodes.OrderBy(x => nameSet[x.Name]).ToList();
+
+            return result;
+        }
 
         public SerializationNode[] GenerateSerializableStructure(object @object) =>
-            _GenerateSerializableStructureInternal(@object, _memberInfoExtendeds);
+            _GenerateSerializableStructureInternal(@object, _memberInfoCollection);
 
 
         public TObject GenerateObject<TObject>(SerializationNode[] serializationNodes) =>
-            (TObject)_GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoExtendeds);
+            (TObject)_GenerateObjectInternal(typeof(TObject), serializationNodes, _memberInfoCollection);
 
 
 

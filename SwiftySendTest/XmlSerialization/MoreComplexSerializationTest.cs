@@ -3,7 +3,7 @@ using SwiftySendTest.TestData;
 using System.Linq;
 using Xunit;
 
-namespace SwiftySendTest
+namespace SwiftySendTest.XmlSerialization
 {
     public class MoreComplexSerializationTest : SerializationTestBase
     {

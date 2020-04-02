@@ -5,18 +5,18 @@ using System.Xml.Linq;
 
 namespace SwiftySend.ReaderWriter
 {
-    internal class SwiftySendXmlReader
+    internal class SwiftyReader
     {
-        private readonly string _xmlInput;
+        //private readonly string _intput;
 
-        public SwiftySendXmlReader(string xmlInput)
+        public SwiftyReader(/*string input*/)
         {
-            _xmlInput = xmlInput;
+            //_intput = input;
         }
 
 
-        public IList<SerializationNode> ParseXml() =>
-            ParseXmlInternal(XDocument.Parse(_xmlInput).Root);
+        public IList<SerializationNode> ParseXml(string intputXml) =>
+            ParseXmlInternal(XDocument.Parse(intputXml).Root);
 
         private IList<SerializationNode> ParseXmlInternal(XElement element)
         {
